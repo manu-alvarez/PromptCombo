@@ -77,7 +77,7 @@ mutación
   └── syncDetailAddState()
 ```
 
-`updateOutput()` programa un guardado diferido (300 ms) con `selected` y `vars`. `core/persistence.js` valida el payload, limita tamaños, usa la clave versionada `promptcombo.session.v1` y tolera cuota llena, JSON corrupto o almacenamiento bloqueado. La preferencia se guarda en `promptcombo.prefs.v1`; al desactivarla se borra la sesión local.
+`updateOutput()` programa un guardado diferido (300 ms) cuando la sesión ya está inicializada, con `selected` y `vars`. `core/persistence.js` valida el payload, limita tamaños, usa la clave versionada `promptcombo.session.v1` y tolera cuota llena, JSON corrupto o almacenamiento bloqueado. La preferencia se guarda en `promptcombo.prefs.v1`; al desactivarla se borra la sesión local.
 
 El render se deriva siempre del estado; no se guarda HTML como fuente de verdad.
 
@@ -135,9 +135,8 @@ El artefacto se versiona para permitir descarga directa y auditoría del resulta
 
 - Producción: sirve `dist/` en `127.0.0.1:8282`.
 - Desarrollo: sirve `src/` con módulos ES nativos.
-- Acepta `/promptcombo` como prefijo para Tailscale Serve.
 - Resuelve `/` a `index.html`, expone `/healthz` y limita métodos a `GET`/`HEAD`.
-- Bloquea path traversal comparando la ruta resuelta con la raíz.
+- Bloquea path traversal comparando la ruta real con la raíz y rechaza enlaces simbólicos que escapen.
 - Añade `nosniff`, `DENY` para framing, `no-referrer` y una `Permissions-Policy` restrictiva.
 - No usa dependencias externas ni framework HTTP.
 
@@ -159,7 +158,7 @@ El artefacto se versiona para permitir descarga directa y auditoría del resulta
 - No hay red, `eval`, `Function` ni `document.write`.
 - `localStorage` solo se usa para la composición y la preferencia de guardado; el payload se valida y se acota antes de leerlo o escribirlo.
 - El servidor no lista directorios, no refleja el path solicitado y bloquea enlaces simbólicos que escapen de la raíz.
-- Tailscale Serve es la única exposición remota prevista; Funnel no está habilitado.
+- El servidor escucha solo en `127.0.0.1`; no hay proxies ni túneles configurados.
 
 Riesgos residuales: el contenido del catálogo es confiado por diseño; si en el futuro se importan módulos externos, deberán validarse y sanearse como datos no confiables.
 
@@ -172,7 +171,7 @@ Riesgos residuales: el contenido del catálogo es confiado por diseño; si en el
 | Datos en módulos ES | Validación en Node y tree-shaking | JSON cargado por `fetch` |
 | Persistencia local opcional | Continuidad entre recargas sin backend | Estado solo en memoria; IndexedDB |
 | `launchd` para macOS | Servicio de usuario persistente sin privilegios | `nohup` o proceso de terminal |
-| Tailscale Serve con path | No desplaza el servicio existente en la raíz | Sustituir la raíz o abrir un puerto público |
+| Solo loopback | Menor superficie y sin configuración de red | Proxy inverso o túnel |
 
 ## 10. Extensión
 

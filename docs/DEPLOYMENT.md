@@ -4,19 +4,15 @@
 
 ```text
 macOS
-├── launchd · com.promptcombo.server
-│   └── node scripts/serve.mjs --port 8282
-│       └── 127.0.0.1:8282 · dist/index.html
-│
-└── Tailscale Serve
-    └── https://<host>.ts.net/promptcombo/
-        └── proxy a http://127.0.0.1:8282
+└── launchd · com.promptcombo.server
+    └── node scripts/serve.mjs --port 8282
+        └── 127.0.0.1:8282 · dist/index.html
 ```
 
-- El servidor local escucha solo en `127.0.0.1`.
-- Tailscale Serve termina TLS y proxyfica la ruta `/promptcombo`.
-- No se usa Funnel: el acceso queda limitado a la tailnet.
-- El puerto público de Tailscale sigue siendo `443`; el puerto local es `8282`.
+- El servidor escucha solo en `127.0.0.1`.
+- No hay proxy inverso, túnel ni servicio de exposición remota configurado.
+- El puerto local es `8282`; no se publica en la red.
+- La aplicación sigue siendo un único `dist/index.html` offline.
 
 ## 2. Preparación
 
@@ -24,7 +20,6 @@ Requisitos:
 
 - macOS para el servicio `launchd`.
 - Node.js 20+ (`node --version`).
-- Tailscale activo (`tailscale status`).
 - Puerto `8282` libre (`lsof -nP -iTCP:8282 -sTCP:LISTEN`).
 
 ```bash
@@ -57,6 +52,8 @@ curl -fsS http://127.0.0.1:8282/healthz
 lsof -nP -iTCP:8282 -sTCP:LISTEN
 ```
 
+La salida de `lsof` debe mostrar únicamente `127.0.0.1:8282`, no `0.0.0.0` ni una interfaz externa.
+
 Abrir en local:
 
 ```text
@@ -81,50 +78,7 @@ El servicio resuelve una ruta estable de Node (`/usr/local/bin/node` o `/opt/hom
 
 `install` comprueba antes que el puerto `8282` no esté ocupado por un proceso ajeno al servicio. Si lo está, falla con el PID y no deja un falso positivo de salud.
 
-## 4. Tailscale Serve
-
-El host ya tiene servicios en la raíz de `443`. PromptCombo se monta en `/promptcombo` para no sustituirlos.
-
-```bash
-tailscale serve --bg --set-path /promptcombo http://127.0.0.1:8282
-tailscale serve status
-```
-
-La salida debe incluir una entrada similar a:
-
-```text
-https://vpn-manu-hackintosh.tailb645cc.ts.net
-|-- /promptcombo proxy http://127.0.0.1:8282
-|-- / proxy http://127.0.0.1:8082
-```
-
-Verificación desde el propio macOS o desde otro dispositivo de la tailnet:
-
-```bash
-curl -fsS https://vpn-manu-hackintosh.tailb645cc.ts.net/promptcombo/healthz
-curl -fsS https://vpn-manu-hackintosh.tailb645cc.ts.net/promptcombo/ | head
-```
-
-URL de la aplicación:
-
-```text
-https://vpn-manu-hackintosh.tailb645cc.ts.net/promptcombo/
-```
-
-### Retirar solo la ruta de PromptCombo
-
-```bash
-tailscale serve --https=443 --set-path=/promptcombo off
-tailscale serve status
-```
-
-No ejecutes `tailscale serve reset`: eliminaría también la ruta `/` del servicio existente en `8082`.
-
-### Funnel
-
-No está habilitado. Para exponer la aplicación a Internet pública haría falta una decisión explícita y `tailscale funnel`; este proyecto no lo configura por defecto.
-
-## 5. Actualización
+## 4. Actualización
 
 ```bash
 cd "/Users/manu/Desktop/PROMPT COMBO"
@@ -134,9 +88,9 @@ npm run check
 npm run service:restart
 ```
 
-El servicio sirve el `dist/index.html` recién generado. La ruta de Tailscale no cambia.
+El servicio sirve el `dist/index.html` recién generado. No hay ninguna ruta remota que actualizar.
 
-## 6. Diagnóstico
+## 5. Diagnóstico
 
 ### El puerto está ocupado
 
@@ -144,7 +98,7 @@ El servicio sirve el `dist/index.html` recién generado. La ruta de Tailscale no
 lsof -nP -iTCP:8282 -sTCP:LISTEN
 ```
 
-Detén el proceso que lo ocupa o cambia el puerto en `scripts/service.mjs` y en la ruta de Tailscale.
+Detén el proceso que lo ocupa o cambia el puerto en `scripts/service.mjs`.
 
 ### El servicio no arranca
 
@@ -154,20 +108,19 @@ tail -n 80 ~/Library/Logs/PromptCombo/server.error.log
 tail -n 80 ~/Library/Logs/PromptCombo/server.log
 ```
 
-### Tailscale devuelve 404
-
-Comprueba que el proxy apunta al puerto correcto y que la ruta está registrada:
-
-```bash
-tailscale serve status
-curl -i http://127.0.0.1:8282/healthz
-```
-
 ### La app carga pero el portapapeles falla
 
 Es una restricción del navegador. PromptCombo usa `navigator.clipboard` y, si falla, `document.execCommand('copy')`; como último recurso selecciona el texto para copia manual.
 
-## 7. Alternativa manual
+### Comprobar que no hay exposición externa
+
+```bash
+lsof -nP -iTCP:8282 -sTCP:LISTEN
+```
+
+La salida debe mostrar `127.0.0.1:8282` y no una dirección `0.0.0.0` ni una interfaz de red externa.
+
+## 6. Alternativa manual
 
 Sin `launchd`:
 

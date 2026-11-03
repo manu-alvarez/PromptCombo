@@ -3,7 +3,6 @@
  * Servidor estático sin dependencias para desarrollo y producción.
  * - Producción: sirve dist/index.html en 127.0.0.1:8282.
  * - Desarrollo: sirve src/ con módulos ES nativos.
- * - Acepta el prefijo /promptcombo usado por Tailscale Serve.
  */
 import { createReadStream } from 'node:fs';
 import { access, realpath, stat } from 'node:fs/promises';
@@ -13,7 +12,6 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const DEFAULT_PORT = 8282;
-const DEFAULT_BASE_PATH = '/promptcombo';
 
 const MIME_TYPES = new Map([
   ['.html', 'text/html; charset=utf-8'],
@@ -65,20 +63,12 @@ function securityHeaders(dev) {
   };
 }
 
-function stripBasePath(pathname, basePath) {
-  if (!basePath || basePath === '/') return pathname;
-  if (pathname === basePath || pathname === `${basePath}/`) return '/';
-  if (pathname.startsWith(`${basePath}/`)) return pathname.slice(basePath.length) || '/';
-  return pathname;
-}
-
 /**
  * Crea el servidor sin escuchar. Exportado para tests de integración.
  */
 export function createStaticServer({
   root,
   dev = false,
-  basePath = DEFAULT_BASE_PATH,
   log = true
 } = {}) {
   if (!root) throw new Error('createStaticServer requiere un directorio raíz.');
@@ -104,21 +94,7 @@ export function createStaticServer({
 
     try {
       const url = new URL(request.url || '/', 'http://localhost');
-      const rawPathname = decodeURIComponent(url.pathname).replace(/\/{2,}/g, '/');
-
-      if (basePath && basePath !== '/' && rawPathname === basePath) {
-        pathname = rawPathname;
-        response.writeHead(308, {
-          Location: `${basePath}/${url.search}`,
-          'Content-Length': '0',
-          ...securityHeaders(dev)
-        });
-        response.end();
-        finish(308);
-        return;
-      }
-
-      pathname = stripBasePath(rawPathname, basePath);
+      pathname = decodeURIComponent(url.pathname).replace(/\/{2,}/g, '/');
 
       if (pathname === '/healthz') {
         sendJson(response, 200, {
@@ -251,9 +227,6 @@ Ejemplos:
   npm start
   npm run dev
   PORT=8282 npm start
-
-Tailscale Serve:
-  tailscale serve --bg --set-path /promptcombo http://127.0.0.1:8282
 `);
 }
 
@@ -301,7 +274,6 @@ async function main() {
     const displayHost = options.host === '0.0.0.0' ? '127.0.0.1' : options.host;
     console.log(`PromptCombo · ${mode}`);
     console.log(`local:     http://${displayHost}:${options.port}/`);
-    console.log(`tailnet:   https://<host>.ts.net/promptcombo/ (con Tailscale Serve)`);
     console.log(`health:    http://${displayHost}:${options.port}/healthz`);
     console.log('Ctrl+C para detener.');
   });

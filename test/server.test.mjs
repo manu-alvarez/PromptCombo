@@ -42,24 +42,8 @@ test('sirve el shell de desarrollo y sus módulos ES', async () => {
   assert.match(await moduleResponse.text(), /renderCatalog/);
 });
 
-test('acepta el prefijo /promptcombo de Tailscale Serve', async () => {
-  const response = await fetch(`${baseUrl}/promptcombo/`);
-  assert.equal(response.status, 200);
-  assert.match(await response.text(), /PromptCombo/);
-
-  const css = await fetch(`${baseUrl}/promptcombo/styles/index.css`);
-  assert.equal(css.status, 200);
-  assert.match(css.headers.get('content-type'), /text\/css/);
-});
-
-test('redirige /promptcombo a /promptcombo/ para conservar rutas relativas', async () => {
-  const response = await fetch(`${baseUrl}/promptcombo`, { redirect: 'manual' });
-  assert.equal(response.status, 308);
-  assert.equal(response.headers.get('location'), '/promptcombo/');
-});
-
 test('expone healthz y cabeceras defensivas', async () => {
-  const response = await fetch(`${baseUrl}/promptcombo/healthz`);
+  const response = await fetch(`${baseUrl}/healthz`);
   assert.equal(response.status, 200);
   assert.equal(response.headers.get('x-content-type-options'), 'nosniff');
   assert.equal(response.headers.get('x-frame-options'), 'DENY');

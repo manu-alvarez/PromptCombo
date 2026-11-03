@@ -147,23 +147,7 @@ npm run service:uninstall
 
 El plist se guarda en `~/Library/LaunchAgents/com.promptcombo.server.plist` y los logs en `~/Library/Logs/PromptCombo/`.
 
-## Acceso desde la tailnet
-
-Con Tailscale activo y el servicio local funcionando:
-
-```bash
-tailscale serve --bg --set-path /promptcombo http://127.0.0.1:8282
-tailscale serve status
-curl -fsS https://<host>.ts.net/promptcombo/healthz
-```
-
-La URL resultante es similar a:
-
-```text
-https://vpn-manu-hackintosh.tailb645cc.ts.net/promptcombo/
-```
-
-Esto publica **solo dentro de la tailnet**, no en Internet. La aplicación no habilita Tailscale Funnel. Consulta [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) para el procedimiento completo y la retirada del servicio.
+El servicio escucha únicamente en `127.0.0.1:8282`. No hay exposición remota ni por la red local; para acceder desde otro dispositivo sería necesario configurar explícitamente un proxy o una red privada.
 
 ## Seguridad y privacidad
 
@@ -173,7 +157,7 @@ Esto publica **solo dentro de la tailnet**, no en Internet. La aplicación no ha
 - Renderizado con escape explícito de datos y atributos.
 - Servidor estático con protección de path traversal, cabeceras defensivas y métodos limitados a `GET`/`HEAD`.
 - Sin credenciales ni secretos en el repositorio.
-- El acceso remoto se limita a Tailscale Serve; Funnel no está habilitado.
+- Sin exposición remota: el servidor solo acepta conexiones en loopback.
 
 Para reportar una vulnerabilidad, sigue [SECURITY.md](SECURITY.md).
 
@@ -192,7 +176,6 @@ Para reportar una vulnerabilidad, sigue [SECURITY.md](SECURITY.md).
 - Varias pestañas comparten la misma clave local. La preferencia de guardado se sincroniza, pero la composición no: la última pestaña que guarde sobrescribe la anterior.
 - La copia automática depende de la política del navegador. El fallback selecciona el texto para copia manual si ambos mecanismos fallan.
 - No se registra service worker ni manifest: la aplicación es offline como archivo único, pero no se declara instalable como PWA.
-- Tailscale Serve requiere que el dispositivo cliente pertenezca a la misma tailnet.
 
 ## Licencia
 
