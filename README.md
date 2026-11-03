@@ -9,6 +9,19 @@ PromptCombo es una aplicación web sin framework que convierte un catálogo modu
 
 ![Interfaz de PromptCombo](docs/promptcombo.png)
 
+## Alcance y límites
+
+PromptCombo es un **compositor determinista de prompts**. No es un runtime de agentes ni una capa de ejecución.
+
+- Genera un documento de instrucciones; no llama a modelos ni ejecuta herramientas.
+- No aplica permisos, credenciales, aislamiento ni aprobaciones.
+- No conecta servidores MCP ni mantiene sesiones de modelo.
+- Los módulos `agent` y `subagent` son contratos textuales; no crean procesos.
+- Las 30 skills son procedimientos textuales; no son paquetes Agent Skills ejecutables.
+- El prompt compilado incluye límites de ejecución y autorización, pero su cumplimiento depende del runtime y de la revisión humana.
+
+La aplicación verifica su propio código, sus datos y su build; no puede verificar el comportamiento de un modelo externo. Consulta [Contratos y límites](docs/CONTRACTS.md) y la [decisión de alcance](docs/adr/0001-prompt-composer-boundary.md).
+
 ## Qué incluye
 
 | Grupo | Módulos |
@@ -23,13 +36,14 @@ PromptCombo es una aplicación web sin framework que convierte un catálogo modu
 | Scaffoldings | 3 |
 | **Total** | **56** |
 
-Cada skill documenta ocho campos: propósito, cuándo usarla, entradas, procedimiento, restricciones, salida, criterios de aceptación y ejemplo.
+Cada skill documenta ocho campos: propósito, cuándo usarla, entradas, procedimiento, restricciones, salida, criterios de aceptación y ejemplo. Su contenido es textual y no instala dependencias ni habilita herramientas.
 
 ## Funcionalidad
 
 - Catálogo con acordeones, búsqueda normalizada y fichas de detalle.
 - Constructor ordenable con Drag & Drop y controles accesibles de subida/bajada.
 - Variables dinámicas con sustitución determinista en el prompt compilado.
+- Contrato global de ejecución: límites de herramientas, autorización de acciones sensibles, datos no confiables y evidencia verificable.
 - Recetas de sesión: **PWA desde cero**, **Auditoría exprés** y **Blueprint de producto**.
 - Prevención de duplicados, eliminación con deshacer y reinicio reversible.
 - Copia con Clipboard API y fallback para contextos restringidos.
@@ -68,10 +82,11 @@ La dirección de dependencias es `ui → core → data`. Los módulos de datos n
 
 ```text
 PromptCombo/
+├── AGENTS.md                   # Instrucciones para agentes del repositorio
 ├── src/
 │   ├── index.html              # Shell de desarrollo
 │   ├── main.js                 # Punto de entrada
-│   ├── core/                   # Estado, DOM, formato, catálogo y compilador
+│   ├── core/                   # Estado, DOM, formato, catálogo, compilador y persistencia
 │   ├── data/                   # 56 módulos y recetas
 │   │   └── skills/             # 30 skills en seis lotes
 │   ├── styles/                 # 12 secciones CSS + índice
@@ -81,8 +96,8 @@ PromptCombo/
 │   ├── serve.mjs               # Servidor HTTP sin dependencias
 │   ├── service.mjs             # Servicio launchd para macOS
 │   └── validate-data.mjs       # Contrato de datos y compilación completa
-├── test/                       # node:test (datos, compilador y servidor)
-├── docs/                       # Arquitectura, despliegue y captura
+├── test/                       # node:test (datos, compilador, persistencia y servidor)
+├── docs/                       # Arquitectura, contratos, ADR, despliegue y captura
 ├── legacy/                     # Entregable original V1.0 conservado
 ├── dist/index.html             # Entregable offline generado y versionado
 └── .github/workflows/ci.yml    # Validación, tests y build en CI
@@ -163,7 +178,10 @@ Para reportar una vulnerabilidad, sigue [SECURITY.md](SECURITY.md).
 
 ## Documentación
 
+- [Instrucciones para agentes](AGENTS.md)
 - [Arquitectura](docs/ARCHITECTURE.md)
+- [Contratos y límites](docs/CONTRACTS.md)
+- [ADR: compositor, no runtime](docs/adr/0001-prompt-composer-boundary.md)
 - [Despliegue](docs/DEPLOYMENT.md)
 - [Contribución](CONTRIBUTING.md)
 - [Seguridad](SECURITY.md)

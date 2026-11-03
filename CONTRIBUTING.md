@@ -18,6 +18,9 @@
 - La persistencia local debe pasar por `core/persistence.js`: esquema versionado, validación y tolerancia a cuota/errores. No accedas a `localStorage` desde `ui/`.
 - Mantener la dirección de dependencias `ui → core → data`.
 - Mantener el compilador como función pura y testeable.
+- Leer `AGENTS.md` y `docs/CONTRACTS.md` antes de ampliar el alcance.
+- No presentar módulos `agent`, `subagent` o `skill` como ejecutables: son contratos y procedimientos textuales.
+- Cualquier runtime, MCP, permiso o evaluación de modelos requiere un ADR y un diseño separado.
 
 ## Añadir o modificar módulos
 

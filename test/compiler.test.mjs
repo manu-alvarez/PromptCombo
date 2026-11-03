@@ -21,6 +21,18 @@ test('el compilador devuelve una cadena vacía sin módulos', () => {
   assert.equal(compilePrompt(undefined, {}), '');
 });
 
+test('incluye límites de ejecución, autorización y cierre verificable', () => {
+  const role = getItem('role-architect');
+  const output = compilePrompt([role], {});
+
+  assert.match(output, /## LÍMITES DE EJECUCIÓN Y AUTORIZACIÓN/);
+  assert.match(output, /no concede herramientas, permisos, credenciales ni acceso a sistemas/);
+  assert.match(output, /autorización explícita para el destino y los argumentos exactos/);
+  assert.match(output, /datos no confiables/);
+  assert.match(output, /Estado: completed, blocked o needs_approval/);
+  assert.match(output, /No declares completed si falta una verificación esencial/);
+});
+
 test('compila un rol con estructura determinista', () => {
   const role = getItem('role-architect');
   const output = compilePrompt([role], {});

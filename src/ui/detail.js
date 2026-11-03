@@ -34,11 +34,25 @@ function detailBlock(title, content, full = false) {
   </section>`;
 }
 
+function getScopeNote(item) {
+  if (item.type === 'agent' || item.type === 'subagent') {
+    return 'Contrato textual de comportamiento: no crea procesos, no ejecuta herramientas y no concede permisos.';
+  }
+  if (item.type === 'skill') {
+    return 'Procedimiento textual reutilizable: no instala dependencias ni habilita herramientas por sí mismo.';
+  }
+  if (item.type === 'prompt') {
+    return 'Plantilla textual: las variables se sustituyen como texto y no se evalúan ni ejecutan.';
+  }
+  return '';
+}
+
 function renderDetail(item) {
+  const scope = getScopeNote(item);
   const lead = `<div class="detail-lead">
     <span class="detail-type-chip">${escapeHTML(TYPE_META[item.type].label)}</span>
     <p class="detail-tagline">${escapeHTML(item.tagline || '')}</p>
-  </div>`;
+  </div>${scope ? `<p class="detail-scope">${escapeHTML(scope)}</p>` : ''}`;
 
   if (item.type === 'role') {
     return lead + `<div class="detail-grid">

@@ -145,6 +145,18 @@ body.dialog-open {
   line-height: 1.55;
 }
 
+.detail-scope {
+  margin: -6px 0 16px;
+  padding: 8px 10px;
+  border-left: 2px solid var(--accent-line);
+  border-radius: 0 5px 5px 0;
+  background: rgba(255, 255, 255, 0.018);
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 9px;
+  line-height: 1.6;
+}
+
 .detail-vars {
   display: flex;
   flex-wrap: wrap;

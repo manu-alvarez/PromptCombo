@@ -25,6 +25,19 @@ src/data  ◄──  src/core  ◄──  src/ui  ◄──  src/main.js
 | `ui` | Render, eventos, diálogos, toasts, sesión | Acceso directo a `localStorage` o red |
 | `main` | Composición e inicialización | Lógica de negocio |
 
+### Alcance del producto
+
+PromptCombo compila instrucciones textuales; no ejecuta modelos ni herramientas.
+
+- No aplica permisos, credenciales, aislamiento ni aprobaciones.
+- No implementa MCP, sesiones de modelo, checkpoints ni trazas de ejecución.
+- Los tipos `agent`, `subagent` y `skill` son contratos y procedimientos textuales.
+- El prompt compilado incluye límites de ejecución y autorización; su cumplimiento depende del runtime externo.
+
+Consulta `docs/CONTRACTS.md` y `docs/adr/0001-prompt-composer-boundary.md`.
+
+`AGENTS.md` orienta a agentes que modifican el repositorio; no se sirve en `dist/index.html` ni forma parte del prompt generado.
+
 ### Datos
 
 - `src/data/catalog.js` importa los ocho grupos, deriva `GROUPS`, `ALL_ITEMS`, `ITEM_MAP` y `TOTAL_ITEMS`, y define `TYPE_META`.
@@ -89,7 +102,7 @@ El render se deriva siempre del estado; no se guarda HTML como fuente de verdad.
 2. Genera un bloque por módulo mediante `compileBlock(item, index)`.
 3. Deduplica las variables de los prompts en orden de aparición.
 4. Aplica sustituciones con `split/join`, sin interpretar patrones de reemplazo.
-5. Envuelve los bloques con el protocolo global y el checklist de cierre.
+5. Envuelve los bloques con el protocolo global, los límites de ejecución y autorización, y el checklist de cierre verificable.
 
 Consecuencias:
 
@@ -97,6 +110,8 @@ Consecuencias:
 - Se puede probar en Node sin navegador.
 - Los valores vacíos conservan el token original para que el usuario detecte variables pendientes.
 - El orden del array `selected` es el orden del prompt final.
+
+El protocolo compilado declara límites de ejecución, autorización de acciones sensibles, tratamiento de datos no confiables y cierre con estado/evidencia. Es texto: no concede permisos ni sustituye los controles del runtime.
 
 ### Contrato de los módulos
 
