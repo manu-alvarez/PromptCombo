@@ -35,7 +35,7 @@ function createStorage() {
 }
 
 test('el catálogo de recetas declara familias, destinos y preguntas válidas', () => {
-  assert.equal(RECIPES.length, 13);
+  assert.equal(RECIPES.length, 21);
   assert.equal(new Set(RECIPES.map((recipe) => recipe.id)).size, RECIPES.length);
   assert.equal(new Set(RECIPES.map((recipe) => recipe.family)).size, 8);
 
@@ -100,11 +100,10 @@ test('la skill conserva frontmatter y los tres archivos del paquete', () => {
   project.artifacts = buildArtifacts(project);
   const paths = project.artifacts.map((artifact) => artifact.path);
 
-  assert.deepEqual(paths, [
-    'skills/review-pull-request/SKILL.md',
-    'skills/review-pull-request/references/output-template.md',
-    'skills/review-pull-request/assets/acceptance-checklist.md'
-  ]);
+  assert.ok(paths.includes('skills/review-pull-request/SKILL.md'));
+  assert.ok(paths.includes('skills/review-pull-request/references/output-template.md'));
+  assert.ok(paths.includes('skills/review-pull-request/assets/acceptance-checklist.md'));
+  assert.ok(paths.includes('docs/library-index.md'));
   assert.match(project.artifacts[0].content, /^---\nname: review-pull-request\ndescription:/);
   assert.match(project.artifacts[0].content, /## Procedimiento/);
 });

@@ -1,5 +1,11 @@
 # Despliegue de PromptCombo
 
+## GitHub Pages
+
+El workflow `.github/workflows/pages.yml` publica el artefacto estático en
+<https://manu-alvarez.github.io/PromptCombo/>. Se ejecuta en cada push a `main`
+o manualmente desde Actions.
+
 ## 1. Topología
 
 ```text

@@ -1,4 +1,6 @@
 /* Generación determinista de artefactos a partir de una receta y valores. */
+import { COMMAND_DEFS } from '../data/command-defs.js';
+import { getResource } from '../data/library-resources.js';
 import { getRecipe } from '../data/studio-recipes.js';
 import { slugify } from './format.js';
 
@@ -13,130 +15,6 @@ const PROMPT_TYPE_LABELS = {
   docs: 'Documentación',
   design: 'Diseño y UX',
   extraction: 'Extracción estructurada'
-};
-
-const COMMAND_DEFS = {
-  plan: {
-    title: 'Plan',
-    description: 'Delimitar un cambio no trivial antes de implementarlo.',
-    steps: [
-      'Inspecciona el estado del repositorio y los archivos afectados.',
-      'Define objetivo, alcance, dependencias, riesgos y criterios de aceptación.',
-      'Propón un plan incremental con verificaciones por paso.',
-      'No implementes todavía salvo petición explícita.'
-    ],
-    output: 'Plan, archivos afectados, riesgos y verificaciones.'
-  },
-  explain: {
-    title: 'Explain',
-    description: 'Explicar código o una decisión técnica con el contexto necesario.',
-    steps: [
-      'Identifica propósito, entradas, salidas y consumidores.',
-      'Describe el flujo de ejecución y los efectos secundarios.',
-      'Señala casos límite y supuestos relevantes.',
-      'Añade complejidad temporal o espacial solo cuando sea pertinente.'
-    ],
-    output: 'Explicación estructurada, con rutas y referencias verificables.'
-  },
-  implement: {
-    title: 'Implement',
-    description: 'Implementar una tarea acotada con verificación.',
-    steps: [
-      'Lee las instrucciones y el contexto aplicable.',
-      'Aplica el cambio mínimo coherente con el objetivo.',
-      'Añade o actualiza pruebas del comportamiento.',
-      'Ejecuta las comprobaciones disponibles y revisa el diff.'
-    ],
-    output: 'Cambio implementado, pruebas y evidencia de verificación.'
-  },
-  debug: {
-    title: 'Debug',
-    description: 'Investigar un fallo con evidencia antes de corregirlo.',
-    steps: [
-      'Resume síntoma, reproducción, entorno y cambios recientes.',
-      'Formula hipótesis distinguibles.',
-      'Ejecuta comprobaciones mínimas y descarta hipótesis.',
-      'Aplica una corrección acotada y añade una prueba de regresión.'
-    ],
-    output: 'Causa confirmada o pendiente, corrección y evidencia.'
-  },
-  fix: {
-    title: 'Fix',
-    description: 'Corregir un defecto con una prueba de regresión.',
-    steps: [
-      'Delimita el comportamiento defectuoso y el esperado.',
-      'Identifica la causa sin ocultar el error.',
-      'Aplica la corrección mínima.',
-      'Demuestra el antes/después con una prueba reproducible.'
-    ],
-    output: 'Parche, prueba de regresión y riesgos residuales.'
-  },
-  test: {
-    title: 'Test',
-    description: 'Diseñar o ampliar pruebas relevantes.',
-    steps: [
-      'Identifica contratos, límites y modos de fallo.',
-      'Selecciona casos representativos y de borde.',
-      'Implementa pruebas deterministas y legibles.',
-      'Ejecuta la suite y registra resultados reales.'
-    ],
-    output: 'Pruebas añadidas y evidencia de ejecución.'
-  },
-  review: {
-    title: 'Review',
-    description: 'Revisar un cambio y devolver hallazgos accionables.',
-    steps: [
-      'Lee las instrucciones y el diff completo.',
-      'Comprueba contratos, regresiones, seguridad y accesibilidad cuando aplique.',
-      'Clasifica hallazgos por impacto y evidencia.',
-      'No corrijas el artefacto salvo petición explícita.'
-    ],
-    output: 'Hallazgos priorizados con ubicación, impacto y corrección sugerida.'
-  },
-  docs: {
-    title: 'Docs',
-    description: 'Actualizar documentación para que refleje el código real.',
-    steps: [
-      'Identifica qué comportamiento o decisión cambió.',
-      'Localiza la documentación afectada.',
-      'Actualiza ejemplos, comandos y límites.',
-      'Comprueba que no quedan afirmaciones obsoletas.'
-    ],
-    output: 'Documentación actualizada y referencias verificadas.'
-  },
-  adr: {
-    title: 'ADR',
-    description: 'Registrar una decisión arquitectónica con contexto y consecuencias.',
-    steps: [
-      'Describe el problema y las restricciones.',
-      'Enumera alternativas reales.',
-      'Registra la decisión y su justificación.',
-      'Define consecuencias, verificación y condiciones de revisión.'
-    ],
-    output: 'Documento ADR con estado, contexto, decisión y consecuencias.'
-  },
-  handoff: {
-    title: 'Handoff',
-    description: 'Transferir estado, evidencia y próximos pasos sin secretos.',
-    steps: [
-      'Resume objetivo y estado actual.',
-      'Enumera archivos, decisiones y comandos ejecutados.',
-      'Separa evidencia de supuestos y cambios sin verificar.',
-      'Indica permisos pendientes y la siguiente acción concreta.'
-    ],
-    output: 'Traspaso estructurado y verificable.'
-  },
-  'release-check': {
-    title: 'Release check',
-    description: 'Comprobar si una entrega está preparada sin publicar nada.',
-    steps: [
-      'Revisa estado de Git y cambios pendientes.',
-      'Ejecuta los controles documentados.',
-      'Comprueba migraciones, documentación y riesgos.',
-      'Resume bloqueos; no publiques ni despliegues.'
-    ],
-    output: 'Checklist de release con bloqueos y evidencia.'
-  }
 };
 
 function lines(value) {
@@ -1101,25 +979,775 @@ Este documento no ejecuta pruebas. La ejecución debe realizarse con las herrami
   ];
 }
 
+function buildIdea(project, recipe) {
+  const values = project.values;
+  return [
+    makeArtifact(project, recipe, 'docs/product/brief.md', 'markdown', `# Brief · {{projectName}}
+
+## Problema
+
+{{problem}}
+
+## Usuarios
+
+{{audience}}
+
+## Resultado esperado
+
+{{outcome}}
+
+## Criterio de éxito
+
+{{successMetric}}
+
+## Restricciones
+
+{{constraints}}
+
+## Exclusiones
+
+${listBlock(values.exclusions, 'Añade exclusiones explícitas.')}
+
+## Decisiones pendientes
+
+${listBlock(values.pendingDecisions, 'Añade decisiones pendientes.')}
+
+${contractBlock()}`),
+    makeArtifact(project, recipe, 'docs/product/requirements.md', 'markdown', `# Requisitos · {{projectName}}
+
+## Objetivo
+
+{{goal}}
+
+## Requisitos funcionales
+
+- [ ] El sistema resuelve el problema descrito en el brief.
+- [ ] Los usuarios definidos pueden completar el recorrido principal.
+- [ ] Los errores y estados vacíos tienen un comportamiento definido.
+
+## Requisitos no funcionales
+
+- [ ] Seguridad y privacidad revisadas.
+- [ ] Accesibilidad y rendimiento comprobables.
+- [ ] Sin dependencias no justificadas.
+
+## Exclusiones
+
+${listBlock(values.exclusions, 'Añade exclusiones explícitas.')}
+
+## Preguntas abiertas
+
+${listBlock(values.pendingDecisions, 'Añade decisiones pendientes.')}`),
+    makeArtifact(project, recipe, 'docs/product/scope.md', 'markdown', `# Alcance · {{projectName}}
+
+## Dentro del alcance
+
+- El resultado principal descrito en el brief.
+- Los datos y usuarios necesarios para verificarlo.
+
+## Después
+
+- Mejoras que no bloquean el resultado principal.
+
+## Fuera
+
+${listBlock(values.exclusions, 'Añade exclusiones explícitas.')}
+
+## Condición de revisión
+
+El alcance se revisa si cambia el usuario, el resultado esperado o una restricción crítica.`),
+    makeArtifact(project, recipe, 'docs/product/acceptance.md', 'markdown', `# Criterios de aceptación · {{projectName}}
+
+| ID | Criterio | Evidencia |
+|---|---|---|
+| AC-01 | El resultado principal es observable. | Pendiente |
+| AC-02 | Los estados vacío y error son recuperables. | Pendiente |
+| AC-03 | Los permisos y datos sensibles están revisados. | Pendiente |
+
+## Regla
+
+Un criterio solo se marca como cumplido cuando existe evidencia verificable; no se sustituye por una impresión.`)
+  ];
+}
+
+function buildFeature(project, recipe) {
+  const values = project.values;
+  return [
+    makeArtifact(project, recipe, 'docs/feature/plan.md', 'markdown', `# Plan de funcionalidad · {{projectName}}
+
+## Funcionalidad
+
+{{featureName}}
+
+## Comportamiento esperado
+
+{{featureGoal}}
+
+## Pasos
+
+1. Inspeccionar contratos, datos y pruebas afectadas.
+2. Implementar el cambio mínimo.
+3. Añadir pruebas y actualizar documentación.
+4. Ejecutar la verificación y revisar el diff.
+
+## Riesgo principal
+
+{{risk}}
+
+## Criterios de aceptación
+
+${listBlock(values.acceptance, 'Añade criterios de aceptación.')}
+
+${contractBlock()}`),
+    makeArtifact(project, recipe, 'prompts/implementation.md', 'markdown', `# Prompt de implementación · {{featureName}}
+
+Implementa la funcionalidad descrita para {{projectName}}.
+
+## Comportamiento esperado
+
+{{featureGoal}}
+
+## Contexto
+
+{{goal}}
+
+Stack: {{stack}}
+Restricciones: {{constraints}}
+
+## Antes de escribir código
+
+- Inspecciona el repositorio y los contratos existentes.
+- Identifica los archivos y pruebas afectados.
+- No introduzcas dependencias sin justificarlas.
+
+## Entrega
+
+- Cambio implementado y pruebas.
+- Comandos ejecutados y resultados reales.
+- Riesgos y limitaciones pendientes.
+
+No declares éxito sin evidencia.`),
+    makeArtifact(project, recipe, 'docs/feature/verification.md', 'markdown', `# Verificación · {{featureName}}
+
+## Pruebas previstas
+
+${listBlock(values.testPlan, 'Añade pruebas previstas.')}
+
+## Criterios de aceptación
+
+${listBlock(values.acceptance, 'Añade criterios de aceptación.')}
+
+## Verificación real
+
+| Comprobación | Resultado | Evidencia |
+|---|---|---|
+| Pendiente | Pendiente | Pendiente |
+
+No completes esta tabla con resultados no ejecutados.`)
+  ];
+}
+
+function buildDebug(project, recipe) {
+  const values = project.values;
+  return [
+    makeArtifact(project, recipe, 'docs/debug/report.md', 'markdown', `# Informe de fallo · {{projectName}}
+
+## Síntoma
+
+{{symptom}}
+
+## Impacto
+
+{{impact}}
+
+## Entorno
+
+{{environment}}
+
+## Evidencia
+
+${listBlock(values.evidence, 'Añade evidencia observable.')}
+
+## Hipótesis
+
+- [ ] Hipótesis principal.
+- [ ] Alternativa que pueda descartarse con una comprobación mínima.
+
+## Límites
+
+No se declara causa confirmada hasta que la evidencia la sustente.
+
+${contractBlock()}`),
+    makeArtifact(project, recipe, 'docs/debug/reproduction.md', 'markdown', `# Reproducción mínima · {{projectName}}
+
+## Pasos
+
+${numberedBlock(values.reproduction, 'Añade pasos reproducibles.')}
+
+## Resultado observado
+
+{{symptom}}
+
+## Control
+
+Describe una ejecución que no falla para descartar una causa.
+
+## Evidencia
+
+${listBlock(values.evidence, 'Añade evidencia.')}
+
+## Entorno
+
+{{environment}}`),
+    makeArtifact(project, recipe, 'docs/debug/regression.md', 'markdown', `# Regresión · {{projectName}}
+
+## Comportamiento corregido
+
+{{symptom}}
+
+## Prueba de regresión
+
+- [ ] La prueba falla antes de la corrección.
+- [ ] La prueba pasa después.
+- [ ] La suite relevante se ejecutó.
+- [ ] Los riesgos residuales están declarados.
+
+No marques la regresión como cubierta sin evidencia de ejecución.`)
+  ];
+}
+
+function buildMigration(project, recipe) {
+  const values = project.values;
+  return [
+    makeArtifact(project, recipe, 'docs/migration/plan.md', 'markdown', `# Plan de migración · {{projectName}}
+
+## Estado actual
+
+{{fromState}}
+
+## Estado objetivo
+
+{{toState}}
+
+## Consumidores
+
+${listBlock(values.consumers, 'Añade consumidores afectados.')}
+
+## Fases
+
+1. Inventariar datos y contratos.
+2. Introducir compatibilidad de lectura.
+3. Migrar datos con verificación.
+4. Retirar el formato anterior cuando exista evidencia.
+
+## Ventana y criterios
+
+{{window}}
+
+${contractBlock()}`),
+    makeArtifact(project, recipe, 'docs/migration/compatibility.md', 'markdown', `# Compatibilidad · {{projectName}}
+
+## Contratos afectados
+
+{{fromState}} → {{toState}}
+
+## Reglas
+
+- Mantener lectura del formato anterior durante la transición.
+- Documentar cambios incompatibles y su ventana.
+- Probar datos válidos, incompletos y corruptos.
+- No eliminar el formato anterior sin verificación.`),
+    makeArtifact(project, recipe, 'docs/migration/rollback.md', 'markdown', `# Rollback · {{projectName}}
+
+## Procedimiento
+
+{{rollback}}
+
+## Condiciones de parada
+
+- La migración produce pérdida o corrupción de datos.
+- Un consumidor crítico deja de funcionar.
+- La verificación no puede completarse.
+
+## Verificación
+
+- [ ] Existe copia recuperable.
+- [ ] El rollback fue probado o justificado.
+- [ ] Se conoce el impacto de volver atrás.`)
+  ];
+}
+
+function buildRelease(project, recipe) {
+  const values = project.values;
+  return [
+    makeArtifact(project, recipe, 'docs/release/checklist.md', 'markdown', `# Checklist de entrega · {{projectName}}
+
+## Versión
+
+{{version}}
+
+## Cambios
+
+${listBlock(values.changes, 'Añade cambios incluidos.')}
+
+## Controles
+
+${listBlock(values.checks, 'Añade controles ejecutados.')}
+
+## Migración
+
+{{migration}}
+
+## Rollback
+
+{{rollback}}
+
+## Criterio de bloqueo
+
+No se publica si un control esencial falla o no se ha ejecutado.`),
+    makeArtifact(project, recipe, 'docs/release/notes.md', 'markdown', `# Notas de versión · {{version}}
+
+## Cambios
+
+${listBlock(values.changes, 'Añade cambios.')}
+
+## Migración
+
+{{migration}}
+
+## Verificación
+
+${listBlock(values.checks, 'Añade controles.')}
+
+## Limitaciones
+
+- No se declaran métricas no medidas.
+- No se declara compatibilidad no probada.`),
+    makeArtifact(project, recipe, 'docs/release/rollback.md', 'markdown', `# Reversión · {{projectName}}
+
+{{rollback}}
+
+## Comprobaciones
+
+- [ ] Artefacto anterior localizable.
+- [ ] Datos compatibles o restaurables.
+- [ ] Responsable de la decisión identificado.
+- [ ] Comunicación posterior definida.`)
+  ];
+}
+
+function buildHandoff(project, recipe) {
+  const values = project.values;
+  return [
+    makeArtifact(project, recipe, 'docs/handoff.md', 'markdown', `# Handoff · {{projectName}}
+
+## Objetivo
+
+{{goal}}
+
+## Estado actual
+
+{{currentState}}
+
+## Decisiones
+
+${listBlock(values.decisions, 'Añade decisiones tomadas.')}
+
+## Evidencia
+
+${listBlock(values.evidence, 'Añade evidencia.')}
+
+## Riesgos
+
+${listBlock(values.risks, 'Añade riesgos abiertos.')}
+
+## Siguiente acción
+
+{{nextAction}}
+
+No incluyas secretos ni supuestos ocultos.`),
+    makeArtifact(project, recipe, 'docs/context.md', 'markdown', `# Contexto · {{projectName}}
+
+## Objetivo
+
+{{goal}}
+
+## Stack
+
+{{stack}}
+
+## Estado
+
+{{currentState}}
+
+## Documentos relevantes
+
+- \`docs/handoff.md\`
+- \`docs/decisions.md\`
+
+## Límites
+
+Este contexto es una selección; no sustituye al repositorio ni a la evidencia.`),
+    makeArtifact(project, recipe, 'docs/decisions.md', 'markdown', `# Registro de decisiones · {{projectName}}
+
+| Decisión | Alternativas | Motivo | Consecuencia | Estado |
+|---|---|---|---|---|
+| Pendiente | Pendiente | Pendiente | Pendiente | Propuesta |
+
+${listBlock(values.decisions, 'Añade decisiones.')}`)
+  ];
+}
+
+function buildSecurity(project, recipe) {
+  const values = project.values;
+  return [
+    makeArtifact(project, recipe, 'docs/security/threat-model.md', 'markdown', `# Modelo de amenazas · {{projectName}}
+
+## Activos
+
+${listBlock(values.assets, 'Añade activos.')}
+
+## Actores
+
+${listBlock(values.actors, 'Añade actores.')}
+
+## Límites de confianza
+
+${listBlock(values.boundaries, 'Añade límites.')}
+
+## Amenazas
+
+| Amenaza | Condición | Impacto | Mitigación | Estado |
+|---|---|---|---|---|
+| Pendiente | Pendiente | Pendiente | Pendiente | No verificada |
+
+## Riesgos conocidos
+
+${listBlock(values.knownRisks, 'Añade riesgos.')}
+
+## Límite
+
+Este documento es un análisis, no una certificación de seguridad.`),
+    makeArtifact(project, recipe, 'docs/security/checklist.md', 'markdown', `# Checklist de seguridad · {{projectName}}
+
+- [ ] Activos y límites de confianza identificados.
+- [ ] Autorización comprobada en el límite real.
+- [ ] Secretos fuera del repositorio y de los logs.
+- [ ] Entradas no confiables validadas.
+- [ ] Importaciones y exportaciones limitadas.
+- [ ] Acciones sensibles con aprobación y permisos separados.
+- [ ] Riesgos residuales declarados.
+
+## Acciones sensibles
+
+${listBlock(values.sensitiveActions, 'Añade acciones sensibles.')}`),
+    makeArtifact(project, recipe, 'docs/security/approvals.md', 'markdown', `# Aprobaciones propuestas · {{projectName}}
+
+| Acción | Destino | Argumentos | Permiso | Aprobación | Estado |
+|---|---|---|---|---|---|
+| Pendiente | Pendiente | Pendiente | Pendiente | Pendiente | Propuesta |
+
+Este registro es documental. No concede permisos ni ejecuta acciones.`)
+  ];
+}
+
+function buildApi(project, recipe) {
+  const values = project.values;
+  return [
+    makeArtifact(project, recipe, 'docs/api/openapi.yaml', 'yaml', `openapi: 3.1.0
+info:
+  title: "{{apiName}}"
+  version: "1.0.0"
+  description: "Contrato propuesto para {{projectName}}."
+servers:
+  - url: http://127.0.0.1:8282
+paths: {}
+components:
+  securitySchemes:
+    session:
+      type: apiKey
+      in: header
+      name: Authorization
+`),
+    makeArtifact(project, recipe, 'docs/api/README.md', 'markdown', `# API · {{apiName}}
+
+## Recursos
+
+${listBlock(values.resources, 'Añade recursos.')}
+
+## Operaciones
+
+${listBlock(values.operations, 'Añade operaciones.')}
+
+## Autorización
+
+{{auth}}
+
+## Versionado
+
+{{versioning}}
+
+## Límites
+
+El contrato es una propuesta revisable; no se ha implementado el servidor.`),
+    makeArtifact(project, recipe, 'docs/api/examples.md', 'markdown', `# Ejemplos de API · {{apiName}}
+
+## Petición
+
+\`\`\`http
+GET /items
+Authorization: Bearer [TOKEN]
+\`\`\`
+
+## Respuesta propuesta
+
+\`\`\`json
+{
+  "items": [],
+  "next": null
+}
+\`\`\`
+
+No incluyas tokens reales.`)
+  ];
+}
+
+function resourceMarkdown(resource) {
+  const content = resource.content || {};
+  const header = `# ${resource.title}
+
+- **Tipo:** ${resource.type}
+- **Versión:** ${resource.version}
+- **Estado:** ${resource.status}
+- **Categoría:** ${resource.category}
+- **Objetivo:** ${resource.objective || resource.summary}
+- **Cuándo usarlo:** ${resource.useWhen || 'No definido.'}
+- **Cuándo evitarlo:** ${resource.avoidWhen || 'No definido.'}`;
+
+  if (resource.type === 'skill') {
+    return `${header}
+
+## Propósito
+
+${content.purpose || resource.summary}
+
+## Entradas
+
+${(content.inputs || []).map((item) => `- ${item}`).join('\n') || '- Sin entradas declaradas.'}
+
+## Procedimiento
+
+${(content.procedure || []).map((item, index) => `${index + 1}. ${item}`).join('\n') || '1. Sin procedimiento declarado.'}
+
+## Restricciones
+
+${(content.restrictions || []).map((item) => `- ${item}`).join('\n') || '- Sin restricciones declaradas.'}
+
+## Salida
+
+${content.output || resource.outputs?.[0] || 'No definida.'}
+
+## Criterios de aceptación
+
+${(content.acceptance || []).map((item) => `- ${item}`).join('\n') || '- Sin criterios declarados.'}
+
+## Ejemplo
+
+${content.example || 'Sin ejemplo.'}
+
+${contractBlock()}`;
+  }
+
+  if (resource.type === 'role') {
+    return `${header}
+
+## Misión
+
+${content.mission || ''}
+
+## Responsabilidades
+
+${(content.responsibilities || []).map((item) => `- ${item}`).join('\n')}
+
+## Decisiones que puede proponer
+
+${(content.decisions || []).map((item) => `- ${item}`).join('\n')}
+
+## Entradas
+
+${(content.inputs || []).map((item) => `- ${item}`).join('\n')}
+
+## Evidencias
+
+${(content.evidence || []).map((item) => `- ${item}`).join('\n')}
+
+## Límites
+
+${(content.boundaries || []).map((item) => `- ${item}`).join('\n')}
+
+## Salida esperada
+
+${content.output || ''}
+
+${contractBlock()}`;
+  }
+
+  if (resource.type === 'command') {
+    return `${header}
+
+## Uso
+
+\`${content.usage || `/${resource.id}`}\`
+
+## Argumentos
+
+${(content.arguments || []).map((item) => `- ${item}`).join('\n')}
+
+## Contexto
+
+${content.context || ''}
+
+## Procedimiento
+
+${(content.procedure || []).map((item, index) => `${index + 1}. ${item}`).join('\n')}
+
+## Salida
+
+${content.output || ''}
+
+## Restricciones
+
+${(content.restrictions || []).map((item) => `- ${item}`).join('\n')}
+
+## Ejemplo
+
+${content.example || ''}`;
+  }
+
+  if (resource.type === 'register') {
+    return `${header}
+
+## Campos
+
+| Campo | Descripción |
+|---|---|
+${(content.fields || []).map((field) => `| ${field.name} | ${field.description} |`).join('\n')}
+
+## Mantenimiento
+
+${content.maintenance || ''}
+
+## Ejemplo
+
+${content.example || ''}`;
+  }
+
+  if (resource.type === 'template') {
+    return `${header}
+
+## Secciones
+
+${(content.sections || []).map((item) => `- ${item}`).join('\n') || '- Sin secciones declaradas.'}
+
+## Plantilla
+
+${content.template || content.text || content.tree || 'Sin contenido declarado.'}`;
+  }
+
+  return `${header}
+
+## Contenido
+
+${content.note || content.purpose || resource.summary}`;
+}
+
+function makeResourceArtifact(project, resource, path, format, template) {
+  const rendered = renderTemplate(template, project.values);
+  return {
+    id: path,
+    path,
+    format,
+    content: rendered.content,
+    sourceTemplate: resource.id,
+    sourceVersion: resource.version,
+    editedByUser: false,
+    stale: false,
+    pendingVariables: rendered.pending
+  };
+}
+
+function buildLibraryArtifacts(project, recipe) {
+  const resources = (project.resources || []).map(getResource).filter(Boolean);
+  if (resources.length === 0) return [];
+
+  const files = [];
+  const indexRows = [];
+
+  for (const resource of resources) {
+    indexRows.push(`| ${resource.type} | ${resource.title} | ${resource.version} | ${resource.status} | ${resource.verification?.structural || 'not_tested'} |`);
+    const markdown = resourceMarkdown(resource);
+    const source = resource.content || {};
+
+    if (resource.type === 'skill') {
+      files.push(makeResourceArtifact(project, resource, `library/skills/${resource.id}.md`, 'markdown', markdown));
+    } else if (resource.type === 'role') {
+      files.push(makeResourceArtifact(project, resource, `library/roles/${resource.id}.md`, 'markdown', markdown));
+    } else if (resource.type === 'command') {
+      files.push(makeResourceArtifact(project, resource, `library/commands/${resource.id}.prompt.md`, 'markdown', markdown));
+    } else if (resource.type === 'register') {
+      files.push(makeResourceArtifact(project, resource, `library/registers/${resource.id}.md`, 'markdown', markdown));
+    } else if (resource.type === 'template') {
+      files.push(makeResourceArtifact(project, resource, `library/templates/${resource.id}.md`, 'markdown', markdown));
+    } else if (resource.type === 'file') {
+      const fileName = source.fileName;
+      if (fileName) files.push(makeResourceArtifact(project, resource, fileName, fileName.endsWith('.json') ? 'json' : 'text', source.template || markdown));
+    }
+  }
+
+  files.push(makeResourceArtifact(project, recipe, 'docs/library-index.md', 'markdown', `# Biblioteca seleccionada · {{projectName}}
+
+Estos recursos se incluyeron explícitamente en el proyecto. La presencia en el índice no implica instalación ni ejecución.
+
+| Tipo | Recurso | Versión | Estado | Verificación estructural |
+|---|---|---|---|---|
+${indexRows.join('\n')}
+
+## Relación con la receta
+
+- Receta: ${recipe.title} · v${recipe.version}
+- Los recursos se generan como referencias en \`library/\`.
+- Los archivos de tipo \`file\` se escriben en su ruta declarada y pueden requerir revisión.`));
+
+  return files;
+}
+
 export function buildArtifacts(project) {
   const recipe = getRecipe(project.recipeId);
   if (!recipe) return [];
 
   const targets = (project.targets || []).filter((target) => recipe.targets.includes(target));
   const activeTargets = targets.length > 0 ? targets : recipe.defaultTargets;
+  let files = [];
 
-  if (recipe.id === 'prompt-professional') return buildPrompt(project, recipe);
-  if (recipe.id === 'prompt-research') return buildResearch(project, recipe);
-  if (['agents-md', 'cursor-rules', 'copilot-instructions', 'claude-context'].includes(recipe.id)) {
-    return buildRepoInstructions(project, recipe, activeTargets);
-  }
-  if (recipe.id === 'skill-package') return buildSkill(project, recipe);
-  if (recipe.id === 'agent-contract') return buildAgent(project, recipe);
-  if (recipe.id === 'command-pack') return buildCommands(project, recipe);
-  if (recipe.id === 'project-structure') return buildProject(project, recipe);
-  if (recipe.id === 'design-package') return buildDesign(project, recipe);
-  if (recipe.id === 'review-testing') return buildReview(project, recipe);
-  if (recipe.id === 'structured-output') return buildStructured(project, recipe);
+  if (recipe.id === 'prompt-professional') files = buildPrompt(project, recipe);
+  else if (recipe.id === 'prompt-research') files = buildResearch(project, recipe);
+  else if (['agents-md', 'cursor-rules', 'copilot-instructions', 'claude-context'].includes(recipe.id)) {
+    files = buildRepoInstructions(project, recipe, activeTargets);
+  } else if (recipe.id === 'skill-package') files = buildSkill(project, recipe);
+  else if (recipe.id === 'agent-contract') files = buildAgent(project, recipe);
+  else if (recipe.id === 'command-pack') files = buildCommands(project, recipe);
+  else if (recipe.id === 'project-structure') files = buildProject(project, recipe);
+  else if (recipe.id === 'design-package') files = buildDesign(project, recipe);
+  else if (recipe.id === 'review-testing') files = buildReview(project, recipe);
+  else if (recipe.id === 'structured-output') files = buildStructured(project, recipe);
+  else if (recipe.id === 'idea-requirements') files = buildIdea(project, recipe);
+  else if (recipe.id === 'feature-development') files = buildFeature(project, recipe);
+  else if (recipe.id === 'debugging') files = buildDebug(project, recipe);
+  else if (recipe.id === 'migration') files = buildMigration(project, recipe);
+  else if (recipe.id === 'release-check') files = buildRelease(project, recipe);
+  else if (recipe.id === 'handoff') files = buildHandoff(project, recipe);
+  else if (recipe.id === 'security-review') files = buildSecurity(project, recipe);
+  else if (recipe.id === 'api-docs') files = buildApi(project, recipe);
 
-  return [];
+  return [...files, ...buildLibraryArtifacts(project, recipe)];
 }

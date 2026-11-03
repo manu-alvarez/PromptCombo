@@ -1,0 +1,82 @@
+# Biblioteca de recursos
+
+## Modelo
+
+Cada recurso declara:
+
+- `id` estable y `version`.
+- `type`: role, skill, prompt, template, file, command, register, recipe, package, adapter o validator.
+- Título, descripción y objetivo.
+- Categoría, etiquetas y casos de uso.
+- Entradas, salidas y variables cuando aplica.
+- Recursos relacionados.
+- Destinos compatibles.
+- Estado editorial: `draft`, `experimental`, `stable` o `deprecated`.
+- Procedencia, licencia y fecha de revisión.
+- Verificación: `structural`, `examples`, `generator`, `target` y `model`, con estados `passed`, `failed`, `not_tested` o `not_applicable`.
+
+`not_tested` no significa compatible: significa que no se ha probado.
+
+## Composición actual
+
+| Tipo | Recursos |
+|---|---:|
+| Roles | 22 |
+| Skills | 67 |
+| Comandos | 37 |
+| Registros | 14 |
+| Plantillas | 23 |
+| Archivos | 6 |
+| Adaptadores | 7 |
+| Validadores | 5 |
+| Recetas | 21 |
+| Paquetes | 15 |
+| **Total** | **221** |
+
+Los 56 módulos del compositor avanzado se mantienen y se reutilizan como recursos derivados cuando aportan valor. Las recetas nuevas no duplican módulos del compositor: las referencias se resuelven en la capa de biblioteca.
+
+## Descubrimiento
+
+La vista **Biblioteca** permite:
+
+- buscar por título, resumen, etiquetas, tipo o categoría;
+- filtrar por tipo, categoría, estado editorial y destino;
+- abrir una ficha con metadatos, relaciones, compatibilidad y verificación;
+- añadir recursos a un proyecto;
+- iniciar una receta o paquete desde su ficha.
+
+Las recomendaciones de la pantalla Crear siguen siendo reglas de palabras clave, no un modelo generativo.
+
+## Generación
+
+Los recursos seleccionados se materializan como referencias:
+
+```text
+library/
+├── skills/<id>.md
+├── roles/<id>.md
+├── commands/<id>.prompt.md
+├── registers/<id>.md
+└── templates/<id>.md
+docs/library-index.md
+```
+
+Los recursos de tipo `file` se escriben en su ruta declarada. Los adaptadores y validadores se documentan en el índice y no generan archivos por sí mismos.
+
+Añadir un recurso no lo instala, no lo registra en un cliente y no ejecuta su contenido.
+
+## Compatibilidad
+
+- Los formatos se generan según lo implementado en `core/generator.js`.
+- La compatibilidad con clientes concretos queda como `not_tested` hasta probarla en su superficie real.
+- No se importan recursos externos automáticamente.
+- Un recurso `deprecated` debe conservarse para proyectos guardados y sustituirse con una referencia explícita.
+
+## Mantenimiento
+
+1. Añadir o cambiar un recurso en `src/data/library-resources.js` o `command-defs.js`.
+2. Actualizar relaciones y recursos predeterminados de las recetas.
+3. Ejecutar `npm run validate` y `npm test`.
+4. Revisar la generación del recurso y del paquete.
+5. Actualizar la fecha de revisión y el estado de verificación.
+6. No marcar como `stable` un recurso sin pruebas de generación y estructura.

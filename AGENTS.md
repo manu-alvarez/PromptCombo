@@ -55,7 +55,7 @@ src/data -> src/core -> src/ui -> src/main.js -> dist/index.html
 ```
 
 - `data`: catálogo canónico, recetas del generador y metadatos. No conoce el DOM.
-- `core`: estado, generador determinista, modelo de proyecto, validación, persistencia, ZIP y compilador.
+- `core`: estado, generador determinista, modelo de proyecto, validación, persistencia, ZIP, biblioteca y compilador.
 - `ui`: studio guiado, compositor, render y eventos. No accede directamente a `localStorage` ni a red.
 - `scripts`: build, servidor, validación y servicio.
 - `test`: `node:test`; sin dependencias de navegador.
@@ -68,7 +68,8 @@ como artefacto reproducible.
 
 - El catálogo validado contiene 56 módulos: 4 prompts, 7 roles, 3 flujos,
   1 agente, 3 subagentes, 30 skills, 5 plantillas y 3 scaffoldings.
-- El generador declara 13 recetas y 8 familias en `src/data/studio-recipes.js`.
+- El generador declara 21 recetas y 8 familias en `src/data/studio-recipes.js`.
+- La biblioteca declara 221 recursos en `src/data/library-resources.js`.
 - Cada skill conserva sus ocho campos: propósito, cuándo usarla, entradas,
   procedimiento, restricciones, salida, criterios de aceptación y ejemplo.
 - Los IDs y códigos son únicos.

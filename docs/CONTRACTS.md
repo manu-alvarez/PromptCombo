@@ -30,7 +30,7 @@ propios controles.
 PromptCombo **es**:
 
 - Un catálogo modular de instrucciones y procedimientos.
-- Un generador guiado de archivos y especificaciones a partir de 13 recetas.
+- Un generador guiado de archivos y especificaciones a partir de 21 recetas y una biblioteca de 221 recursos.
 - Un compilador determinista de texto.
 - Una interfaz offline para crear proyectos, ordenar bloques, sustituir
   variables, validar artefactos y exportarlos.
@@ -69,7 +69,8 @@ instala la skill ni la registra en un cliente.
 
 El generador crea archivos de texto a partir de las recetas:
 
-- 13 recetas y 8 familias de entregables.
+- 21 recetas y 8 familias de entregables.
+- 221 recursos con metadatos, relaciones y estados de verificación.
 - Prompts, `AGENTS.md`, reglas `.mdc`, `CLAUDE.md`, instrucciones de Copilot,
   paquetes `SKILL.md`, contratos de agentes, comandos, estructuras de proyecto,
   documentación de diseño, planes de testing y esquemas JSON.

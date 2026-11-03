@@ -1,5 +1,12 @@
 /* Generador guiado: creación, proyecto, archivos, validación y exportación. */
 import { FAMILIES, RECIPES, TARGETS, getRecipe } from '../data/studio-recipes.js';
+import {
+  EDITORIAL_STATUSES,
+  LIBRARY_RESOURCES,
+  RESOURCE_MAP,
+  RESOURCE_TYPES,
+  getResource
+} from '../data/library-resources.js';
 import { buildArtifacts } from '../core/generator.js';
 import {
   artifactFileName,
@@ -38,6 +45,12 @@ const state = {
   goal: '',
   templateQuery: '',
   familyFilter: 'all',
+  libraryQuery: '',
+  libraryType: 'all',
+  libraryCategory: 'all',
+  libraryStatus: 'all',
+  libraryTarget: 'all',
+  selectedResource: null,
   selectedArtifact: null,
   saveTimer: null,
   storageWarned: false
@@ -63,6 +76,25 @@ const els = {
   templateGrid: byId('templateGrid'),
   templateEmpty: byId('templateEmpty'),
   templateResetBtn: byId('templateResetBtn'),
+  librarySearch: byId('librarySearch'),
+  librarySearchClear: byId('librarySearchClear'),
+  libraryType: byId('libraryType'),
+  libraryCategory: byId('libraryCategory'),
+  libraryStatus: byId('libraryStatus'),
+  libraryTarget: byId('libraryTarget'),
+  libraryGrid: byId('libraryGrid'),
+  libraryDetail: byId('libraryDetail'),
+  libraryDetailType: byId('libraryDetailType'),
+  libraryDetailTitle: byId('libraryDetailTitle'),
+  libraryDetailContent: byId('libraryDetailContent'),
+  libraryAddBtn: byId('libraryAddBtn'),
+  libraryRemoveBtn: byId('libraryRemoveBtn'),
+  libraryGoProjectBtn: byId('libraryGoProjectBtn'),
+  libraryCloseBtn: byId('libraryCloseBtn'),
+  libraryEmpty: byId('libraryEmpty'),
+  libraryResetBtn: byId('libraryResetBtn'),
+  projectResources: byId('projectResources'),
+  projectResourceCount: byId('projectResourceCount'),
   projectEmpty: byId('projectEmpty'),
   projectWorkspace: byId('projectWorkspace'),
   projectFamily: byId('projectFamily'),
@@ -140,7 +172,7 @@ function updateSessionMeta() {
 }
 
 function setView(view) {
-  if (!['create', 'templates', 'project', 'saved', 'advanced'].includes(view)) return;
+  if (!['create', 'templates', 'library', 'project', 'saved', 'advanced'].includes(view)) return;
   state.view = view;
 
   for (const button of navButtons) {
@@ -165,6 +197,7 @@ function setView(view) {
   updateSessionMeta();
 
   if (view === 'templates') renderTemplates();
+  if (view === 'library') renderLibrary();
   if (view === 'project') renderProject();
   if (view === 'saved') renderSaved();
   if (view === 'create') {
@@ -182,6 +215,7 @@ export function initStudio() {
   renderFamilies();
   renderFilters();
   renderRecipeSelect();
+  renderLibraryControls();
   bindStudioEvents();
 
   const loaded = loadStudioState();
@@ -253,6 +287,179 @@ function renderTemplates() {
   els.templateSearchClear.hidden = state.templateQuery.length === 0;
   if (document.activeElement !== els.templateSearch) els.templateSearch.value = state.templateQuery;
 }
+
+function resourceTypeLabel(type) {
+  return RESOURCE_TYPES.find(([id]) => id === type)?.[1] || type;
+}
+
+function resourceStatusLabel(status) {
+  return EDITORIAL_STATUSES.includes(status) ? status : 'sin estado';
+}
+
+function renderLibraryControls() {
+  const categories = [...new Set(LIBRARY_RESOURCES.map((resource) => resource.category).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'es'));
+
+  els.libraryType.innerHTML = `<option value="all">Todos los tipos</option>${RESOURCE_TYPES.map(([id, label]) =>
+    `<option value="${escapeHTML(id)}">${escapeHTML(label)}</option>`
+  ).join('')}`;
+  els.libraryCategory.innerHTML = `<option value="all">Todas las categorías</option>${categories.map((category) =>
+    `<option value="${escapeHTML(category)}">${escapeHTML(category)}</option>`
+  ).join('')}`;
+  els.libraryStatus.innerHTML = `<option value="all">Todos los estados</option>${EDITORIAL_STATUSES.map((status) =>
+    `<option value="${escapeHTML(status)}">${escapeHTML(resourceStatusLabel(status))}</option>`
+  ).join('')}`;
+  els.libraryTarget.innerHTML = `<option value="all">Todos los destinos</option>${Object.entries(TARGETS).map(([id, target]) =>
+    `<option value="${escapeHTML(id)}">${escapeHTML(target.label)}</option>`
+  ).join('')}`;
+
+  els.libraryType.value = state.libraryType;
+  els.libraryCategory.value = state.libraryCategory;
+  els.libraryStatus.value = state.libraryStatus;
+  els.libraryTarget.value = state.libraryTarget;
+}
+
+function libraryMatches(resource, query) {
+  if (state.libraryType !== 'all' && resource.type !== state.libraryType) return false;
+  if (state.libraryCategory !== 'all' && resource.category !== state.libraryCategory) return false;
+  if (state.libraryStatus !== 'all' && resource.status !== state.libraryStatus) return false;
+  if (state.libraryTarget !== 'all' && !resource.compatibility?.includes(state.libraryTarget)) return false;
+  if (!query) return true;
+
+  const normalize = (value) => normalizeSearch(value).replace(/[^a-z0-9]+/g, ' ').trim();
+  return normalize([
+    resource.title,
+    resource.summary,
+    resource.objective,
+    resource.type,
+    resource.category,
+    ...(resource.tags || []),
+    ...(resource.related || [])
+  ].join(' ')).includes(normalize(query));
+}
+
+function renderLibrary() {
+  const query = normalizeSearch(state.libraryQuery);
+  const results = LIBRARY_RESOURCES.filter((resource) => libraryMatches(resource, query));
+
+  els.libraryGrid.innerHTML = results.map((resource) =>
+    `<button class="library-card${resource.id === state.selectedResource ? ' is-active' : ''}" type="button" data-resource="${escapeHTML(resource.id)}">
+      <span class="library-kind">${escapeHTML(resourceTypeLabel(resource.type))} · ${escapeHTML(resourceStatusLabel(resource.status))}</span>
+      <span class="library-title">${escapeHTML(resource.title)}</span>
+      <span class="library-summary">${escapeHTML(resource.summary)}</span>
+      <span class="library-tags">${(resource.tags || []).slice(0, 4).map((tag) => `<span class="target-tag">${escapeHTML(tag)}</span>`).join('')}</span>
+    </button>`
+  ).join('');
+
+  els.libraryEmpty.hidden = results.length !== 0;
+  els.librarySearchClear.hidden = state.libraryQuery.length === 0;
+  if (document.activeElement !== els.librarySearch) els.librarySearch.value = state.libraryQuery;
+
+  if (state.selectedResource && RESOURCE_MAP.has(state.selectedResource)) {
+    renderLibraryDetail(RESOURCE_MAP.get(state.selectedResource));
+  } else {
+    els.libraryDetail.hidden = true;
+  }
+}
+
+function renderLibraryDetail(resource) {
+  const isProjectRecipe = resource.type === 'package' || resource.type === 'recipe';
+  const recipeId = resource.type === 'package' ? resource.content?.recipeId : resource.type === 'recipe' ? resource.content?.recipeId : null;
+  const canAdd = !isProjectRecipe && !['adapter', 'validator'].includes(resource.type);
+  const selected = Boolean(state.project?.resources?.includes(resource.id));
+
+  els.libraryDetailType.textContent = `${resourceTypeLabel(resource.type).toUpperCase()} · ${resourceStatusLabel(resource.status)}`;
+  els.libraryDetailTitle.textContent = resource.title;
+  els.libraryDetail.hidden = false;
+
+  const list = (items) => Array.isArray(items) && items.length > 0
+    ? `<ul>${items.map((item) => `<li>${escapeHTML(item)}</li>`).join('')}</ul>`
+    : '<p class="studio-muted">No declarado.</p>';
+  const related = (resource.related || []).map((id) => {
+    const target = getResource(id);
+    return target ? `<button class="chip-button" type="button" data-resource="${escapeHTML(id)}">${escapeHTML(target.title)}</button>` : '';
+  }).join('');
+
+  els.libraryDetailContent.innerHTML = `<p class="library-detail-summary">${escapeHTML(resource.summary)}</p>
+    <dl class="library-facts">
+      <div><dt>Versión</dt><dd>${escapeHTML(resource.version)}</dd></div>
+      <div><dt>Objetivo</dt><dd>${escapeHTML(resource.objective || '')}</dd></div>
+      <div><dt>Cuándo</dt><dd>${escapeHTML(resource.useWhen || '')}</dd></div>
+      <div><dt>Evitar</dt><dd>${escapeHTML(resource.avoidWhen || '')}</dd></div>
+      <div><dt>Compatibilidad</dt><dd>${(resource.compatibility || []).map((target) => escapeHTML(targetLabel(target))).join(', ') || 'No declarada'}</dd></div>
+      <div><dt>Verificación</dt><dd>${Object.entries(resource.verification || {}).map(([key, value]) => `${escapeHTML(key)}: ${escapeHTML(value)}`).join(' · ')}</dd></div>
+    </dl>
+    <h4>Entradas</h4>${list(resource.inputs)}
+    <h4>Salidas</h4>${list(resource.outputs)}
+    ${related ? `<h4>Relacionados</h4><div class="library-related">${related}</div>` : ''}
+    <p class="studio-muted">Origen: ${escapeHTML(resource.provenance?.origin || 'no declarado')} · Revisión: ${escapeHTML(resource.lastReviewed || 'pendiente')}</p>`;
+
+  els.libraryAddBtn.hidden = !canAdd && !isProjectRecipe;
+  els.libraryRemoveBtn.hidden = !canAdd || !selected;
+  els.libraryGoProjectBtn.hidden = !state.project;
+  els.libraryAddBtn.disabled = !canAdd && !isProjectRecipe;
+  els.libraryAddBtn.textContent = isProjectRecipe
+    ? (resource.type === 'package' ? 'Usar este paquete' : 'Usar esta receta')
+    : 'Añadir al proyecto';
+}
+
+function addResourceToProject(id) {
+  const resource = getResource(id);
+  if (!resource) return;
+  if (!state.project) {
+    showToast('Crea o abre un proyecto antes de añadir recursos.', { duration: 2600 });
+    return;
+  }
+  if (['recipe', 'package'].includes(resource.type)) {
+    const recipeId = resource.content?.recipeId;
+    if (recipeId) startRecipe(recipeId);
+    return;
+  }
+  if (resource.type === 'adapter' || resource.type === 'validator') {
+    showToast('Este recurso es informativo y no genera archivos.', { duration: 2200 });
+    return;
+  }
+  if (state.project.resources.includes(id)) {
+    showToast('El recurso ya está en el proyecto.', { duration: 1800 });
+    return;
+  }
+
+  state.project.resources.push(id);
+  markArtifactsStale(state.project);
+  touchProject(state.project);
+  scheduleSave();
+  renderProjectResources();
+  renderLibraryDetail(resource);
+  if (state.view === 'project') refreshAfterEdit();
+  showToast(`Recurso añadido: ${resource.title}`, { tone: 'success', duration: 1800 });
+}
+
+function removeResourceFromProject(id) {
+  if (!state.project) return;
+  const before = state.project.resources.length;
+  state.project.resources = state.project.resources.filter((resourceId) => resourceId !== id);
+  if (state.project.resources.length === before) return;
+  markArtifactsStale(state.project);
+  touchProject(state.project);
+  scheduleSave();
+  renderProjectResources();
+  renderLibraryDetail(getResource(id));
+  if (state.view === 'project') refreshAfterEdit();
+  showToast('Recurso quitado del proyecto', { duration: 1800 });
+}
+
+function renderProjectResources() {
+  const resources = (state.project?.resources || []).map(getResource).filter(Boolean);
+  els.projectResourceCount.textContent = String(resources.length);
+  els.projectResources.innerHTML = resources.length === 0
+    ? '<p class="studio-muted">Sin recursos adicionales. La receta principal seguirá generando sus archivos.</p>'
+    : resources.map((resource) =>
+      `<span class="resource-chip">
+        <span>${escapeHTML(resource.title)}</span>
+        <button type="button" data-remove-resource="${escapeHTML(resource.id)}" aria-label="Quitar ${escapeHTML(resource.title)}">×</button>
+      </span>`
+    ).join('');
+}
+
 
 function renderRecipeSelect() {
   els.recipeSelect.innerHTML = RECIPES.map((recipe) =>
@@ -383,6 +590,7 @@ function renderProject() {
 
   renderQuestions();
   renderTargets();
+  renderProjectResources();
   refreshProjectDerived();
   updateSessionMeta();
 }
@@ -884,6 +1092,20 @@ function bindStudioEvents() {
       return;
     }
 
+    const resourceButton = event.target.closest('[data-resource]');
+    if (resourceButton) {
+      state.selectedResource = resourceButton.dataset.resource;
+      setView('library');
+      renderLibrary();
+      return;
+    }
+
+    const removeResource = event.target.closest('[data-remove-resource]');
+    if (removeResource) {
+      removeResourceFromProject(removeResource.dataset.removeResource);
+      return;
+    }
+
     const artifactButton = event.target.closest('[data-artifact]');
     if (artifactButton) {
       state.selectedArtifact = artifactButton.dataset.artifact;
@@ -927,6 +1149,53 @@ function bindStudioEvents() {
     state.familyFilter = 'all';
     renderFilters();
     renderTemplates();
+  });
+
+  els.librarySearch.addEventListener('input', (event) => {
+    state.libraryQuery = event.target.value;
+    renderLibrary();
+  });
+  els.librarySearchClear.addEventListener('click', () => {
+    state.libraryQuery = '';
+    renderLibrary();
+  });
+  for (const [key, element] of [
+    ['libraryType', els.libraryType],
+    ['libraryCategory', els.libraryCategory],
+    ['libraryStatus', els.libraryStatus],
+    ['libraryTarget', els.libraryTarget]
+  ]) {
+    element.addEventListener('change', (event) => {
+      state[key] = event.target.value;
+      renderLibrary();
+    });
+  }
+  els.libraryResetBtn.addEventListener('click', () => {
+    state.libraryQuery = '';
+    state.libraryType = 'all';
+    state.libraryCategory = 'all';
+    state.libraryStatus = 'all';
+    state.libraryTarget = 'all';
+    renderLibraryControls();
+    renderLibrary();
+  });
+  els.libraryCloseBtn.addEventListener('click', () => {
+    state.selectedResource = null;
+    els.libraryDetail.hidden = true;
+    renderLibrary();
+  });
+  els.libraryRemoveBtn.addEventListener('click', () => {
+    if (state.selectedResource) removeResourceFromProject(state.selectedResource);
+  });
+  els.libraryAddBtn.addEventListener('click', () => {
+    const resource = state.selectedResource ? getResource(state.selectedResource) : null;
+    if (!resource) return;
+    if (['recipe', 'package'].includes(resource.type)) {
+      const recipeId = resource.content?.recipeId;
+      if (recipeId) startRecipe(recipeId);
+      return;
+    }
+    addResourceToProject(resource.id);
   });
 
   els.projectTitle.addEventListener('input', (event) => {

@@ -5,6 +5,8 @@
 [![CI](https://github.com/manu-alvarez/PromptCombo/actions/workflows/ci.yml/badge.svg)](https://github.com/manu-alvarez/PromptCombo/actions/workflows/ci.yml)
 [![Licencia MIT](https://img.shields.io/badge/licencia-MIT-39ff14.svg)](LICENSE)
 
+**Demo pública:** <https://manu-alvarez.github.io/PromptCombo/>
+
 PromptCombo convierte una necesidad en un paquete editable de archivos: prompts, `AGENTS.md`, reglas de Cursor, contexto para Claude Code, instrucciones de Copilot, paquetes de skills, contratos de agentes, comandos, estructuras de proyecto, documentación de diseño, planes de testing y esquemas JSON.
 
 El compositor de bloques original se conserva como **modo avanzado**. La entrada principal es un flujo guiado que selecciona una receta, pide solo los datos necesarios y genera artefactos revisables.
@@ -19,11 +21,11 @@ El compositor de bloques original se conserva como **modo avanzado**. La entrada
 | Instrucciones de repositorio | 4 |
 | Skills | 1 |
 | Agentes | 1 |
-| Comandos | 1 |
-| Proyectos | 1 |
+| Comandos | 4 |
+| Proyectos | 4 |
 | Diseño y frontend | 1 |
-| Validación | 2 |
-| **Total** | **13** |
+| Validación | 4 |
+| **Total** | **21** |
 
 Cada receta declara objetivo, ejemplo, preguntas, destinos compatibles, entregables y límites. No hay tarjetas vacías ni enlaces que aparenten funciones inexistentes.
 
@@ -37,6 +39,23 @@ Cada receta declara objetivo, ejemplo, preguntas, destinos compatibles, entregab
 6. **Exportación**: copia, descarga un archivo, un ZIP o el proyecto JSON.
 
 La interpretación es local y transparente: usa términos y categorías, no un modelo generativo. Si no reconoce la petición, muestra opciones en lugar de inventar una intención.
+
+## Biblioteca de recursos
+
+La vista **Biblioteca** reúne **221 recursos** con identificador, versión, tipo, estado editorial, procedencia, compatibilidad, relaciones y estado de verificación:
+
+- 22 roles.
+- 67 skills.
+- 37 comandos.
+- 14 registros documentales.
+- 23 plantillas.
+- 6 plantillas de archivo.
+- 7 adaptadores.
+- 5 validadores.
+- 21 recetas.
+- 15 paquetes curados.
+
+Los recursos seleccionados generan referencias en `library/` y un `docs/library-index.md` dentro del proyecto. Añadir un recurso no lo instala ni lo ejecuta.
 
 ## Recetas incluidas
 
@@ -55,6 +74,14 @@ La interpretación es local y transparente: usa términos y categorías, no un m
 | Diseño frontend | Brief, IA, pantallas, componentes, tokens, accesibilidad y prompt |
 | Revisión y testing | Plan, checklist, casos y criterios de aceptación |
 | Extracción estructurada | Prompt, JSON Schema, entrada y salida de ejemplo |
+| De idea a requisitos | Brief, requisitos, alcance y aceptación |
+| Desarrollo de funcionalidad | Plan, implementación, pruebas y verificación |
+| Debugging reproducible | Informe, reproducción y regresión |
+| Migración planificada | Fases, compatibilidad y rollback |
+| Preparación de entrega | Checklist, notas, migración y reversión |
+| Transferencia de proyecto | Handoff, contexto y decisiones |
+| Revisión de seguridad | Modelo de amenazas, checklist y aprobaciones |
+| Documentación de API | Contrato OpenAPI, guía y ejemplos |
 
 ## Adaptadores de destino
 
@@ -183,6 +210,16 @@ npm run check    # validate + test + build
 
 Antes de entregar un cambio de UI, comprueba teclado, foco, responsive, consola, generación, edición, regeneración, ZIP, JSON y persistencia.
 
+## GitHub Pages
+
+El workflow `.github/workflows/pages.yml` construye y publica `dist/` en:
+
+```text
+https://manu-alvarez.github.io/PromptCombo/
+```
+
+Usa el artefacto estático, sin Jekyll. El despliegue se ejecuta en cada push a `main` o manualmente desde Actions.
+
 ## Despliegue local persistente
 
 ```bash
@@ -217,6 +254,7 @@ Para vulnerabilidades, sigue [SECURITY.md](SECURITY.md).
 - [Instrucciones para agentes](AGENTS.md)
 - [Arquitectura](docs/ARCHITECTURE.md)
 - [Contratos y límites](docs/CONTRACTS.md)
+- [Biblioteca de recursos](docs/LIBRARY.md)
 - [Auditoría del catálogo](docs/CATALOG-AUDIT.md)
 - [ADR: compositor, no runtime](docs/adr/0001-prompt-composer-boundary.md)
 - [Despliegue](docs/DEPLOYMENT.md)

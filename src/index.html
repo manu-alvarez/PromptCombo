@@ -48,7 +48,7 @@
       </div>
       <div class="brand-copy">
         <h1>PROMPT<span>COMBO</span></h1>
-        <p>ORCHESTRATION SYSTEM <span class="brand-version">/ V2.3</span></p>
+        <p>ORCHESTRATION SYSTEM <span class="brand-version">/ V2.4</span></p>
       </div>
     </div>
 
@@ -77,6 +77,7 @@
   <nav class="mode-nav" aria-label="Secciones de PromptCombo">
     <button class="mode-tab is-active" type="button" data-view="create">Crear</button>
     <button class="mode-tab" type="button" data-view="templates">Plantillas</button>
+    <button class="mode-tab" type="button" data-view="library">Biblioteca</button>
     <button class="mode-tab" type="button" data-view="project">Proyecto</button>
     <button class="mode-tab" type="button" data-view="saved">Guardados</button>
     <button class="mode-tab" type="button" data-view="advanced">Avanzado</button>
@@ -151,6 +152,60 @@
       </div>
     </section>
 
+    <section class="studio-view" data-studio-panel="library" hidden>
+      <div class="studio-heading">
+        <div>
+          <p class="eyebrow"><span class="eyebrow-index">LIB</span> BIBLIOTECA</p>
+          <h2>Recursos reutilizables</h2>
+          <p class="studio-lead">Roles, skills, comandos, registros, plantillas y adaptadores con metadatos y relaciones. Añádelos a un proyecto para generar sus referencias.</p>
+        </div>
+      </div>
+
+      <div class="library-controls">
+        <div class="search-field studio-search">
+          <svg class="icon search-icon" aria-hidden="true"><use href="#i-search"></use></svg>
+          <input id="librarySearch" type="search" placeholder="Buscar skill, rol, comando…" autocomplete="off" spellcheck="false" maxlength="120" aria-label="Buscar recursos">
+          <button class="search-clear" type="button" id="librarySearchClear" aria-label="Limpiar búsqueda" hidden>
+            <svg class="icon" aria-hidden="true"><use href="#i-close"></use></svg>
+          </button>
+        </div>
+        <label class="sr-only" for="libraryType">Tipo de recurso</label>
+        <select class="studio-select" id="libraryType"></select>
+        <label class="sr-only" for="libraryCategory">Categoría</label>
+        <select class="studio-select" id="libraryCategory"></select>
+        <label class="sr-only" for="libraryStatus">Estado editorial</label>
+        <select class="studio-select" id="libraryStatus"></select>
+        <label class="sr-only" for="libraryTarget">Destino</label>
+        <select class="studio-select" id="libraryTarget"></select>
+      </div>
+
+      <div class="library-layout">
+        <div class="library-grid" id="libraryGrid"></div>
+        <aside class="library-detail" id="libraryDetail" aria-labelledby="libraryDetailTitle" hidden>
+          <div class="library-detail-head">
+            <div>
+              <p class="eyebrow eyebrow-small" id="libraryDetailType">RECURSO</p>
+              <h3 id="libraryDetailTitle">Detalle</h3>
+            </div>
+            <button class="icon-button compact" type="button" id="libraryCloseBtn" aria-label="Cerrar detalle" title="Cerrar">
+              <svg class="icon" aria-hidden="true"><use href="#i-close"></use></svg>
+            </button>
+          </div>
+          <div class="library-detail-body" id="libraryDetailContent"></div>
+          <div class="library-detail-actions">
+            <button class="ui-button primary" type="button" id="libraryAddBtn">Añadir al proyecto</button>
+            <button class="text-button" type="button" id="libraryRemoveBtn" hidden>Quitar del proyecto</button>
+            <button class="text-button" type="button" data-view="project" id="libraryGoProjectBtn" hidden>Ver proyecto</button>
+          </div>
+        </aside>
+      </div>
+
+      <div class="studio-empty" id="libraryEmpty" hidden>
+        <p>No hay recursos que coincidan con los filtros.</p>
+        <button class="text-button" type="button" id="libraryResetBtn">Limpiar filtros</button>
+      </div>
+    </section>
+
     <section class="studio-view" data-studio-panel="project" hidden>
       <div class="studio-empty studio-empty-large" id="projectEmpty">
         <p class="eyebrow eyebrow-small">PROYECTO</p>
@@ -193,6 +248,21 @@
               </div>
               <p class="studio-help">Los campos marcados como <strong>Predeterminado</strong> se rellenaron desde la plantilla. Edítalos si no describen tu caso.</p>
               <div class="question-grid" id="projectQuestions"></div>
+            </section>
+
+            <section class="studio-card" aria-labelledby="projectResourcesTitle">
+              <div class="studio-card-head">
+                <div>
+                  <p class="eyebrow eyebrow-small">RECURSOS</p>
+                  <h3 id="projectResourcesTitle">Biblioteca del proyecto</h3>
+                </div>
+                <span class="studio-muted" id="projectResourceCount">0</span>
+              </div>
+              <p class="studio-help">Los recursos seleccionados generan referencias en <code>library/</code>. Añadir un recurso no lo instala ni lo ejecuta.</p>
+              <div class="resource-chips" id="projectResources"></div>
+              <div class="project-generate-row">
+                <button class="text-button" type="button" data-view="library">Explorar biblioteca</button>
+              </div>
             </section>
 
             <section class="studio-card" aria-labelledby="targetsTitle">

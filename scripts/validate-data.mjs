@@ -13,6 +13,13 @@ import {
   RECIPES as STUDIO_RECIPES,
   TARGETS as STUDIO_TARGETS
 } from '../src/data/studio-recipes.js';
+import {
+  EDITORIAL_STATUSES as STUDIO_STATUSES,
+  LIBRARY_RESOURCES,
+  RESOURCE_MAP,
+  RESOURCE_TYPES,
+  VERIFICATION_STATES
+} from '../src/data/library-resources.js';
 import { compilePrompt } from '../src/core/compiler.js';
 import { getActiveVariables } from '../src/core/items.js';
 
@@ -161,7 +168,7 @@ export function validateData() {
     assert.ok(!allOutput.includes(token), `El prompt global conserva el token ${token}.`);
   }
 
-  assert.equal(STUDIO_RECIPES.length, 13, 'El generador debe declarar 13 recetas.');
+  assert.equal(STUDIO_RECIPES.length, 21, 'El generador debe declarar 21 recetas.');
   assert.equal(STUDIO_FAMILIES.length, 8, 'El generador debe declarar 8 familias.');
   assert.equal(new Set(STUDIO_RECIPES.map((recipe) => recipe.id)).size, STUDIO_RECIPES.length, 'Hay recetas duplicadas.');
 
@@ -174,8 +181,28 @@ export function validateData() {
     for (const target of recipe.defaultTargets) assert.ok(recipe.targets.includes(target), `Destino predeterminado incompatible en ${recipe.id}.`);
   }
 
+  const resourceIds = LIBRARY_RESOURCES.map((resource) => resource.id);
+  assert.equal(new Set(resourceIds).size, resourceIds.length, 'Hay recursos de biblioteca duplicados.');
+  for (const resource of LIBRARY_RESOURCES) {
+    assert.ok(RESOURCE_TYPES.some(([type]) => type === resource.type), `Tipo de recurso inválido: ${resource.id}.`);
+    assert.ok(STUDIO_STATUSES.includes(resource.status), `Estado inválido: ${resource.id}.`);
+    for (const state of Object.values(resource.verification || {})) {
+      assert.ok(VERIFICATION_STATES.includes(state), `Verificación inválida: ${resource.id}.${state}.`);
+    }
+    for (const related of resource.related || []) {
+      assert.ok(RESOURCE_MAP.has(related), `Relación inexistente: ${resource.id} -> ${related}.`);
+    }
+  }
+
+  for (const recipe of STUDIO_RECIPES) {
+    for (const resourceId of recipe.defaultResources || []) {
+      assert.ok(RESOURCE_MAP.has(resourceId), `Recurso predeterminado inexistente: ${recipe.id} -> ${resourceId}.`);
+    }
+  }
+
   return {
     modules: TOTAL_ITEMS,
+    libraryResources: LIBRARY_RESOURCES.length,
     skills: skills.length,
     studioRecipes: STUDIO_RECIPES.length,
     studioFamilies: STUDIO_FAMILIES.length,
@@ -188,7 +215,7 @@ const isMain = process.argv[1] && pathToFileURL(path.resolve(process.argv[1])).h
 if (isMain) {
   try {
     const summary = validateData();
-    console.log(`Datos válidos · ${summary.modules} módulos · ${summary.skills} skills · ${summary.studioRecipes} recetas`);
+    console.log(`Datos válidos · ${summary.modules} módulos · ${summary.skills} skills · ${summary.studioRecipes} recetas · ${summary.libraryResources} recursos`);
     console.log(summary.groups);
     console.log(`Familias del generador: ${summary.studioFamilies} · compilado completo: ${summary.characters.toLocaleString('es-ES')} caracteres`);
   } catch (error) {

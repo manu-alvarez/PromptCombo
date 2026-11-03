@@ -1,5 +1,6 @@
 /* Modelo de proyecto, validación estructural y serialización. */
 import { getRecipe } from '../data/studio-recipes.js';
+import { getResource } from '../data/library-resources.js';
 import { slugify } from './format.js';
 
 export const PROJECT_SCHEMA_VERSION = 1;
@@ -63,6 +64,7 @@ export function createProject({ recipeId, description = '', id, now } = {}) {
     locale: 'es',
     recipeId: recipe.id,
     targets: [...recipe.defaultTargets],
+    resources: [...(recipe.defaultResources || [])],
     values,
     defaultedFields,
     artifacts: [],
@@ -110,6 +112,7 @@ export function changeRecipe(project, recipeId, now) {
     title: values.projectName || recipe.title,
     recipeId: recipe.id,
     targets: [...recipe.defaultTargets],
+    resources: [...new Set([...(project.resources || []).filter((id) => getResource(id)), ...(recipe.defaultResources || [])])],
     values,
     defaultedFields,
     artifacts: [],
@@ -284,6 +287,31 @@ export function validateProject(project) {
     }
   }
 
+  if (!Array.isArray(project.resources)) {
+    validations.push({ severity: 'error', code: 'invalid-resources', message: 'Los recursos no son una lista válida.' });
+  } else {
+    const seenResources = new Set();
+    for (const resourceId of project.resources) {
+      if (typeof resourceId !== 'string' || !getResource(resourceId)) {
+        validations.push({
+          severity: 'error',
+          code: 'unknown-resource',
+          message: `Recurso desconocido: ${resourceId}.`
+        });
+      } else if (seenResources.has(resourceId)) {
+        validations.push({
+          severity: 'warning',
+          code: 'duplicate-resource',
+          message: `Recurso duplicado: ${resourceId}.`
+        });
+      }
+      seenResources.add(resourceId);
+    }
+    if (project.resources.length > 80) {
+      validations.push({ severity: 'error', code: 'too-many-resources', message: 'El proyecto supera el límite de recursos.' });
+    }
+  }
+
   if (!Array.isArray(project.artifacts)) {
     validations.push({ severity: 'error', code: 'invalid-artifacts', message: 'Los artefactos no son una lista válida.' });
     return validations;
@@ -373,6 +401,15 @@ export function validateProject(project) {
       });
     }
 
+    if (artifact.stale) {
+      validations.push({
+        severity: 'warning',
+        code: 'stale-artifact',
+        path: safePath,
+        message: 'El archivo está desactualizado respecto a los requisitos actuales.'
+      });
+    }
+
     if (Array.isArray(artifact.pendingVariables) && artifact.pendingVariables.length > 0) {
       const requiredKeys = new Set((recipe?.questions || []).filter((question) => question.required).map((question) => question.id));
       const pending = [...new Set(artifact.pendingVariables)].filter((key) => !missingKeys.has(key));
@@ -430,6 +467,7 @@ export function serializeProject(project) {
     locale: project.locale || 'es',
     recipeId: project.recipeId,
     targets: Array.isArray(project.targets) ? project.targets : [],
+    resources: Array.isArray(project.resources) ? project.resources : [],
     values: project.values || {},
     defaultedFields: Array.isArray(project.defaultedFields) ? project.defaultedFields : [],
     artifacts: (project.artifacts || []).map((artifact) => ({
@@ -487,6 +525,9 @@ export function parseProjectJson(text) {
     targets: Array.isArray(raw.targets)
       ? raw.targets.filter((target) => recipe.targets.includes(target))
       : [...recipe.defaultTargets],
+    resources: Array.isArray(raw.resources)
+      ? [...new Set(raw.resources.filter((id) => typeof id === 'string' && getResource(id)))].slice(0, 80)
+      : [],
     values: {},
     defaultedFields: Array.isArray(raw.defaultedFields) ? raw.defaultedFields.filter((field) => typeof field === 'string') : [],
     artifacts: [],

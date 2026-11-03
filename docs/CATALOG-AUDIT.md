@@ -21,7 +21,7 @@ IDs, códigos, campos, tokens y compilación.
 
 ## Relación con las recetas nuevas
 
-Las 13 recetas del generador son independientes del catálogo avanzado para
+Las 21 recetas del generador son independientes del catálogo avanzado para
 mantener compatibilidad y evitar que una edición de una skill antigua rompa un
 paquete nuevo. Hay solapamiento conceptual en prompts, skills y estructuras:
 
