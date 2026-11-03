@@ -1457,24 +1457,142 @@ Este registro es documental. No concede permisos ni ejecuta acciones.`)
   ];
 }
 
+const HTTP_METHODS = ['get', 'post', 'put', 'patch', 'delete', 'head', 'options'];
+
+function parseApiOperations(value) {
+  return lines(value)
+    .map((line) => {
+      const [method, path] = line.trim().split(/\s+/);
+      if (!method || !path) return null;
+      const normalized = method.toLowerCase();
+      if (!HTTP_METHODS.includes(normalized) || !path.startsWith('/')) return null;
+      return { method: normalized, path };
+    })
+    .filter(Boolean);
+}
+
+function yamlString(value) {
+  return JSON.stringify(String(value ?? ''));
+}
+
+function buildOpenApiYaml(values) {
+  const operations = parseApiOperations(values.operations);
+  const grouped = new Map();
+  for (const operation of operations) {
+    if (!grouped.has(operation.path)) grouped.set(operation.path, []);
+    grouped.get(operation.path).push(operation.method);
+  }
+
+  const out = [
+    'openapi: 3.1.0',
+    'info:',
+    `  title: ${yamlString(values.apiName || 'API')}`,
+    '  version: "1.0.0"',
+    `  description: ${yamlString(`Contrato propuesto para ${values.projectName || 'el proyecto'}.`)}`,
+    'servers:',
+    '  - url: http://127.0.0.1:8282',
+    'paths:'
+  ];
+
+  if (grouped.size === 0) {
+    out[out.length - 1] = 'paths: {}';
+  } else {
+    for (const [path, methods] of grouped) {
+      out.push(`  ${yamlString(path)}:`);
+      const params = [...path.matchAll(/\{([^}]+)\}/g)].map((match) => match[1]);
+      for (const method of methods) {
+        out.push(`    ${method}:`);
+        out.push(`      summary: ${yamlString(`${method.toUpperCase()} ${path}`)}`);
+        out.push(`      operationId: ${method}${path.replace(/[^a-zA-Z0-9]+/g, '_').replace(/^_+|_+$/g, '') || 'root'}`);
+        if (params.length > 0) {
+          out.push('      parameters:');
+          for (const param of params) {
+            out.push(`        - name: ${yamlString(param)}`);
+            out.push('          in: path');
+            out.push('          required: true');
+            out.push('          schema:');
+            out.push('            type: string');
+          }
+        }
+        if (['post', 'put', 'patch'].includes(method)) {
+          out.push('      requestBody:');
+          out.push('        required: true');
+          out.push('        content:');
+          out.push('          application/json:');
+          out.push('            schema:');
+          out.push("              $ref: '#/components/schemas/Resource'");
+          out.push('            example:');
+          out.push('              name: "Ejemplo"');
+        }
+        const isCollectionGet = method === 'get' && params.length === 0;
+        const status = method === 'post' ? '201' : method === 'delete' ? '204' : '200';
+        out.push('      responses:');
+        out.push(`        "${status}":`);
+        out.push('          description: Respuesta propuesta');
+        if (status !== '204') {
+          out.push('          content:');
+          out.push('            application/json:');
+          out.push('              schema:');
+          out.push(isCollectionGet
+            ? "                $ref: '#/components/schemas/ResourceList'"
+            : "                $ref: '#/components/schemas/Resource'");
+          out.push('              example:');
+          if (isCollectionGet) {
+            out.push('                items: []');
+            out.push('                next: null');
+          } else {
+            out.push('                id: "ejemplo"');
+            out.push('                name: "Ejemplo"');
+            out.push('                status: "propuesto"');
+          }
+        }
+      }
+    }
+  }
+
+  out.push('components:');
+  out.push('  securitySchemes:');
+  out.push('    session:');
+  out.push('      type: apiKey');
+  out.push('      in: header');
+  out.push('      name: Authorization');
+  out.push('  schemas:');
+  out.push('    Resource:');
+  out.push('      type: object');
+  out.push('      additionalProperties: false');
+  out.push('      properties:');
+  out.push('        id:');
+  out.push('          type: string');
+  out.push('        name:');
+  out.push('          type: string');
+  out.push('        status:');
+  out.push('          type: string');
+  out.push('      required:');
+  out.push('        - id');
+  out.push('        - name');
+  out.push('    ResourceList:');
+  out.push('      type: object');
+  out.push('      additionalProperties: false');
+  out.push('      properties:');
+  out.push('        items:');
+  out.push('          type: array');
+  out.push('          items:');
+  out.push("            $ref: '#/components/schemas/Resource'");
+  out.push('        next:');
+  out.push('          type: [string, "null"]');
+  out.push('          description: "null si no hay más resultados."');
+  out.push('      required:');
+  out.push('        - items');
+
+  return `${out.join('\n')}\n`;
+}
+
 function buildApi(project, recipe) {
   const values = project.values;
+  const operations = parseApiOperations(values.operations);
+  const exampleOperation = operations.find((operation) => operation.method === 'get') || operations[0] || { method: 'get', path: '/items' };
   return [
-    makeArtifact(project, recipe, 'docs/api/openapi.yaml', 'yaml', `openapi: 3.1.0
-info:
-  title: "{{apiName}}"
-  version: "1.0.0"
-  description: "Contrato propuesto para {{projectName}}."
-servers:
-  - url: http://127.0.0.1:8282
-paths: {}
-components:
-  securitySchemes:
-    session:
-      type: apiKey
-      in: header
-      name: Authorization
-`),
+    makeArtifact(project, recipe, 'docs/api/openapi.yaml', 'yaml', buildOpenApiYaml(values)),
     makeArtifact(project, recipe, 'docs/api/README.md', 'markdown', `# API · {{apiName}}
 
 ## Recursos
@@ -1501,7 +1619,7 @@ El contrato es una propuesta revisable; no se ha implementado el servidor.`),
 ## Petición
 
 \`\`\`http
-GET /items
+${exampleOperation.method.toUpperCase()} ${exampleOperation.path}
 Authorization: Bearer [TOKEN]
 \`\`\`
 

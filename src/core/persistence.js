@@ -15,6 +15,8 @@ let activeStorage = null;
 let saveArmed = false;
 let pendingSnapshot = null;
 let flushTimer = null;
+let lastSavedAt = 0;
+let externalConflict = false;
 
 function usableStorage(storage) {
   if (!storage) return null;
@@ -99,7 +101,10 @@ export function loadStoredSession(storage = getStorage()) {
   try {
     const serialized = storage.getItem(SESSION_KEY);
     if (!serialized) return null;
-    return sanitizeSession(JSON.parse(serialized));
+    const raw = JSON.parse(serialized);
+    const session = sanitizeSession(raw);
+    if (session && Number.isFinite(raw.updatedAt)) lastSavedAt = raw.updatedAt;
+    return session;
   } catch {
     return null;
   }
@@ -116,6 +121,7 @@ export function saveStoredSession(snapshot, storage = getStorage()) {
       vars: normalizeVars(snapshot.vars)
     };
     storage.setItem(SESSION_KEY, JSON.stringify(payload));
+    lastSavedAt = payload.updatedAt;
     return true;
   } catch {
     return false;
@@ -127,6 +133,7 @@ export function clearStoredSession(storage = getStorage()) {
 
   try {
     storage.removeItem(SESSION_KEY);
+    lastSavedAt = 0;
     return true;
   } catch {
     return false;
@@ -208,6 +215,7 @@ export function setPersistenceEnabled(value, storage = activeStorage || getStora
   }
 
   enabled = false;
+  externalConflict = false;
   savePreferences({ persist: false }, storage);
   clearStoredSession(storage);
   pendingSnapshot = null;
@@ -239,8 +247,20 @@ function flushSnapshot() {
   return saved;
 }
 
+export function getSessionSavedAt() {
+  return lastSavedAt;
+}
+
+export function setSessionConflict(value) {
+  externalConflict = Boolean(value);
+}
+
+export function isSessionConflict() {
+  return externalConflict;
+}
+
 export function scheduleSessionSave(snapshot) {
-  if (!enabled || !activeStorage || !saveArmed || !snapshot) return;
+  if (!enabled || !activeStorage || !saveArmed || externalConflict || !snapshot) return;
 
   pendingSnapshot = snapshot;
   if (flushTimer) return;
@@ -257,6 +277,6 @@ export function flushSessionSave() {
     flushTimer = null;
   }
 
-  if (!enabled) return true;
+  if (!enabled || externalConflict) return false;
   return flushSnapshot();
 }

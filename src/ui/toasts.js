@@ -26,22 +26,29 @@ export function showToast(message, options = {}) {
     window.setTimeout(() => element.remove(), 180);
   };
 
-  if (options.actionLabel && typeof options.onAction === 'function') {
-    const action = document.createElement('button');
-    action.type = 'button';
-    action.className = 'toast-action';
-    action.textContent = options.actionLabel;
-    action.addEventListener('click', () => {
+  const actions = Array.isArray(options.actions)
+    ? options.actions
+    : options.actionLabel && typeof options.onAction === 'function'
+      ? [{ label: options.actionLabel, onAction: options.onAction }]
+      : [];
+
+  for (const action of actions) {
+    if (!action?.label || typeof action.onAction !== 'function') continue;
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'toast-action';
+    button.textContent = action.label;
+    button.addEventListener('click', () => {
       if (dismissed) return;
       dismiss();
-      options.onAction();
+      action.onAction();
     });
-    element.append(action);
+    element.append(button);
   }
 
   els.toastRegion.append(element);
   window.requestAnimationFrame(() => element.classList.add('is-visible'));
 
-  const duration = options.duration ?? (options.actionLabel ? 5000 : 2600);
+  const duration = options.duration ?? (actions.length > 0 ? 5000 : 2600);
   timer = window.setTimeout(dismiss, duration);
 }

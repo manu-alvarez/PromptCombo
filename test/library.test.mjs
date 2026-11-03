@@ -164,3 +164,19 @@ test('la extracción incluye salida válida e inválida y un subconjunto de esqu
   for (const required of schema.required) assert.ok(Object.hasOwn(output, required));
   assert.notDeepEqual(output, invalid);
 });
+
+test('añadir un recurso solo agrega referencias y no altera los artefactos base', () => {
+  const base = fillRequired(createProject({ recipeId: 'idea-requirements', description: 'Nueva idea', id: 'resource-effect', now: 1 }));
+  base.resources = [];
+  base.artifacts = buildArtifacts(base);
+  const baseArtifacts = base.artifacts.filter((artifact) => !artifact.path.startsWith('library/') && artifact.path !== 'docs/library-index.md');
+
+  const withResource = structuredClone(base);
+  withResource.resources = ['skill-ambiguity-review'];
+  withResource.artifacts = buildArtifacts(withResource);
+  const baseAfter = withResource.artifacts.filter((artifact) => !artifact.path.startsWith('library/') && artifact.path !== 'docs/library-index.md');
+
+  assert.deepEqual(baseAfter, baseArtifacts);
+  assert.ok(withResource.artifacts.some((artifact) => artifact.path === 'library/skills/skill-ambiguity-review.md'));
+  assert.ok(withResource.artifacts.some((artifact) => artifact.path === 'docs/library-index.md'));
+});

@@ -19,14 +19,18 @@ import {
 import { bindDetailDialog, closeDetail, getCurrentDetailId, openDetail } from './detail.js';
 import { loadRecipe, resetSession } from './session.js';
 import { showToast } from './toasts.js';
+import { downloadText } from '../core/download.js';
 import { showStudioView } from './studio.js';
 import {
   flushSessionSave,
+  getSessionSavedAt,
   initPersistence,
   isPersistenceEnabled,
   isPersistenceSupported,
+  isSessionConflict,
   scheduleSessionSave,
-  setPersistenceEnabled
+  setPersistenceEnabled,
+  setSessionConflict
 } from '../core/persistence.js';
 
 let dragSourceId = null;
@@ -47,6 +51,35 @@ function syncPersistenceControl() {
   const hint = supported ? ' Pulsa para cambiar.' : '';
   els.persistBtn.title = `${description}.${hint}`;
   els.persistBtn.setAttribute('aria-label', `${description}.${hint}`);
+  updateSessionConflictBanner();
+}
+
+function updateSessionConflictBanner() {
+  const conflict = isSessionConflict();
+  els.sessionConflict.hidden = !conflict;
+  els.sessionConflictText.textContent = conflict
+    ? 'El guardado automático está pausado para no sobrescribir la versión externa.'
+    : '';
+}
+
+function keepLocalSession() {
+  setSessionConflict(false);
+  scheduleSessionSave(captureSession());
+  const saved = flushSessionSave();
+  updateSessionConflictBanner();
+  showToast(saved ? 'Composición local conservada' : 'No se pudo guardar la composición local', {
+    tone: saved ? 'success' : 'error',
+    duration: 2600
+  });
+}
+
+function exportLocalSession() {
+  downloadText(
+    JSON.stringify({ version: 1, selected: [...state.selected], vars: { ...state.vars }, updatedAt: Date.now() }, null, 2),
+    'promptcombo-composicion.json',
+    'application/json;charset=utf-8'
+  );
+  showToast('Composición local exportada; el conflicto sigue pendiente.', { duration: 2600 });
 }
 
 function isEditableTarget(target) {
@@ -57,6 +90,9 @@ function isEditableTarget(target) {
 }
 
 export function bindEvents() {
+  els.sessionKeepBtn.addEventListener('click', keepLocalSession);
+  els.sessionExportBtn.addEventListener('click', exportLocalSession);
+
   bindDetailDialog();
 
   els.catalogSearch.addEventListener('input', (event) => {
@@ -134,6 +170,48 @@ export function bindEvents() {
       tone: 'error',
       duration: 5200
     });
+  });
+
+  window.addEventListener('storage', (event) => {
+    if (event.key !== 'promptcombo.session.v1') return;
+
+    const hasLocalContent = state.selected.length > 0 || Object.keys(state.vars).length > 0;
+    if (!hasLocalContent) return;
+
+    let externalUpdatedAt = 0;
+    if (event.newValue) {
+      try {
+        const raw = JSON.parse(event.newValue);
+        externalUpdatedAt = Number(raw.updatedAt) || 0;
+      } catch {
+        return;
+      }
+    }
+
+    if (event.newValue && externalUpdatedAt <= getSessionSavedAt()) {
+      if (isSessionConflict()) {
+        setSessionConflict(false);
+        updateSessionConflictBanner();
+      }
+      return;
+    }
+
+    if (isSessionConflict()) return;
+
+    setSessionConflict(true);
+    showToast(
+      event.newValue
+        ? 'Otra pestaña cambió la composición avanzada. No se guardará esta copia hasta que decidas.'
+        : 'Otra pestaña vació la composición avanzada. No se guardará esta copia hasta que decidas.',
+      {
+        actions: [
+          { label: 'Conservar la mía', onAction: keepLocalSession },
+          { label: 'Exportar mi copia', onAction: exportLocalSession }
+        ],
+        duration: 60000
+      }
+    );
+    updateSessionConflictBanner();
   });
 
   window.addEventListener('storage', (event) => {

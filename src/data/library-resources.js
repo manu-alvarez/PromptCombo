@@ -1404,6 +1404,55 @@ export const LIBRARY_RESOURCES = [
   ...packages
 ];
 
+// Relaciones inversas: un recurso muestra las recetas y paquetes que lo consumen.
+const resourceIndex = new Map(LIBRARY_RESOURCES.map((resource) => [resource.id, resource]));
+const linkRelated = (sourceId, targetId) => {
+  const source = resourceIndex.get(sourceId);
+  const target = resourceIndex.get(targetId);
+  if (!source || !target) return;
+  source.related = source.related || [];
+  if (!source.related.includes(targetId)) source.related.push(targetId);
+};
+
+for (const recipe of RECIPES) {
+  const recipeId = `recipe-${recipe.id}`;
+  for (const resourceId of recipe.defaultResources || []) {
+    linkRelated(resourceId, recipeId);
+    linkRelated(recipeId, resourceId);
+  }
+}
+
+for (const role of LIBRARY_RESOURCES.filter((resource) => resource.type === 'role')) {
+  for (const skillId of role.content?.relatedSkills || []) linkRelated(role.id, skillId);
+}
+
+linkRelated('prompt-kickoff', 'recipe-prompt-professional');
+linkRelated('prompt-research', 'recipe-prompt-research');
+
+for (const pkg of LIBRARY_RESOURCES.filter((resource) => resource.type === 'package')) {
+  for (const resourceId of pkg.content?.resourceIds || []) linkRelated(resourceId, pkg.id);
+}
+
+// Relaciones editoriales explícitas para recursos que no son predeterminados de una receta.
+const EXTRA_RELATIONS = {
+  'skill-prioritization': ['recipe-idea-requirements', 'package-idea-requirements'],
+  'skill-prompt-contradictions': ['recipe-prompt-professional'],
+  'skill-e2e-flows': ['recipe-feature-development', 'recipe-review-testing'],
+  'skill-usability-test': ['recipe-design-package', 'package-interface-design'],
+  'skill-runbook': ['recipe-release-check', 'package-release'],
+  'skill-incident-report': ['recipe-debugging', 'package-debugging'],
+  'skill-research-conflicts': ['recipe-prompt-research', 'package-research'],
+  'skill-decision-record': ['recipe-handoff', 'package-handoff']
+};
+for (const [resourceId, relatedIds] of Object.entries(EXTRA_RELATIONS)) {
+  for (const relatedId of relatedIds) linkRelated(resourceId, relatedId);
+}
+
+// Los recursos nuevos no se elevan a stable sin revisión editorial explícita.
+for (const resource of LIBRARY_RESOURCES) {
+  if (!resource.sourceModule) resource.status = 'experimental';
+}
+
 export const RESOURCE_MAP = new Map(LIBRARY_RESOURCES.map((resource) => [resource.id, resource]));
 
 export function getResource(id) {

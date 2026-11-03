@@ -9,7 +9,7 @@ Cada recurso declara:
 - Título, descripción y objetivo.
 - Categoría, etiquetas y casos de uso.
 - Entradas, salidas y variables cuando aplica.
-- Recursos relacionados.
+- Recursos relacionados, incluidas las recetas y paquetes que consumen el recurso.
 - Destinos compatibles.
 - Estado editorial: `draft`, `experimental`, `stable` o `deprecated`.
 - Procedencia, licencia y fecha de revisión.
@@ -33,7 +33,7 @@ Cada recurso declara:
 | Paquetes | 15 |
 | **Total** | **221** |
 
-Los 56 módulos originales del compositor se mantienen; el avanzado incorpora 52 recursos composables derivados de la biblioteca (22 roles y 67 skills en total). Las recetas nuevas no duplican módulos del compositor: las referencias se resuelven en la capa de biblioteca.
+Los 56 módulos originales del compositor se mantienen; el avanzado incorpora 52 recursos composables derivados de la biblioteca (22 roles y 67 skills en total). Los 49 recursos derivados del catálogo original tienen estado `stable`; los 172 recursos nuevos quedan en `experimental` hasta revisión editorial explícita. Las recetas nuevas no duplican módulos del compositor: las referencias se resuelven en la capa de biblioteca.
 
 ## Descubrimiento
 
@@ -91,6 +91,12 @@ La receta de extracción genera:
 - una salida válida;
 - una salida inválida claramente nombrada.
 
-Subconjunto de esquema soportado actualmente: `type` (`string`, `number`, `integer`, `boolean`, `array`, `object`), `properties`, `required`, `additionalProperties: false` y arrays de strings.
+Subconjunto de esquema soportado: `type` (`string`, `number`, `integer`, `boolean`, `array`, `object`), `properties`, `required`, `additionalProperties`, `items` y `enum`.
 
-La aplicación valida que los archivos JSON parseen y que el esquema tenga la forma generada. No ejecuta un validador completo de JSON Schema ni comprueba el comportamiento de un modelo.
+La validación separa tres niveles: parseo del JSON, estructura del esquema e instancias de ejemplo. Comprueba que la salida válida cumple el esquema y que la salida inválida no lo cumple. No ejecuta un validador completo de JSON Schema ni comprueba el comportamiento de un modelo.
+
+## OpenAPI
+
+La receta de documentación de API genera un YAML OpenAPI 3.1 a partir de las operaciones declaradas. La comprobación cubre versión, `info`, `paths`, indentación básica, referencias internas, parámetros de ruta y presencia de los métodos declarados.
+
+No es una validación semántica completa. El contrato se presenta como borrador revisable y no implementa el servidor.

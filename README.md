@@ -7,6 +7,8 @@
 
 **Demo pública:** <https://manu-alvarez.github.io/PromptCombo/>
 
+**Versión actual:** 2.4.0 (`/ V2.4`). Consulta las [notas de versión](docs/RELEASE-NOTES.md) y los [límites de compatibilidad](docs/RELEASE-NOTES.md#compatibilidad).
+
 PromptCombo convierte una necesidad en un paquete editable de archivos: prompts, `AGENTS.md`, reglas de Cursor, contexto para Claude Code, instrucciones de Copilot, paquetes de skills, contratos de agentes, comandos, estructuras de proyecto, documentación de diseño, planes de testing y esquemas JSON.
 
 El compositor de bloques original se conserva como **modo avanzado**. La entrada principal es un flujo guiado que selecciona una receta, pide solo los datos necesarios y genera artefactos revisables.
@@ -55,7 +57,7 @@ La vista **Biblioteca** reúne **221 recursos** con identificador, versión, tip
 - 21 recetas.
 - 15 paquetes curados.
 
-Los recursos seleccionados generan referencias en `library/` y un `docs/library-index.md` dentro del proyecto. Añadir un recurso no lo instala ni lo ejecuta.
+Los recursos seleccionados generan referencias en `library/` y un `docs/library-index.md` dentro del proyecto. Añadir un recurso no lo instala, no lo ejecuta y no altera la composición del prompt maestro. Los 49 recursos derivados del catálogo original son `stable`; los 172 nuevos quedan `experimental` hasta revisión editorial.
 
 ## Recetas incluidas
 
@@ -73,7 +75,7 @@ Los recursos seleccionados generan referencias en `library/` y un `docs/library-
 | Estructura de proyecto | README, `.env.example`, `.gitignore`, arquitectura, ADR y árbol |
 | Diseño frontend | Brief, IA, pantallas, componentes, tokens, accesibilidad y prompt |
 | Revisión y testing | Plan, checklist, casos y criterios de aceptación |
-| Extracción estructurada | Prompt, JSON Schema, entrada y salida de ejemplo |
+| Extracción estructurada | Prompt, JSON Schema, entrada, salida válida y salida inválida |
 | De idea a requisitos | Brief, requisitos, alcance y aceptación |
 | Desarrollo de funcionalidad | Plan, implementación, pruebas y verificación |
 | Debugging reproducible | Informe, reproducción y regresión |
@@ -262,6 +264,8 @@ Para vulnerabilidades, sigue [SECURITY.md](SECURITY.md).
 - [Seguridad](SECURITY.md)
 
 ## Limitaciones
+
+Los problemas conocidos y los límites de compatibilidad se mantienen en las [notas de versión](docs/RELEASE-NOTES.md#problemas-conocidos).
 
 - La interpretación de necesidades es orientativa y se basa en palabras clave.
 - No hay integración con modelos ni proveedores externos.

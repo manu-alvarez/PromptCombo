@@ -157,11 +157,19 @@ y qué acceso solicita.
 La receta de extracción genera un prompt, un JSON Schema, una entrada, una
 salida válida y una salida inválida. Los archivos JSON deben parsear.
 
-La aplicación **no** ejecuta un validador completo de JSON Schema ni comprueba
-la corrección semántica de la salida. El subconjunto generado se limita a
-`type`, `properties`, `required`, `additionalProperties` y arrays de strings.
-Que una salida cumpla un esquema no demuestra que sea correcta ni que un modelo
-la produzca.
+La validación separa parseo, estructura del esquema e instancias de ejemplo.
+El subconjunto soportado se limita a `type`, `properties`, `required`,
+`additionalProperties`, `items` y `enum`.
+
+La receta de API genera un YAML OpenAPI 3.1 a partir de las operaciones
+declaradas. La comprobación es estructural: versión, `info`, `paths`,
+indentación, referencias internas, parámetros de ruta y métodos declarados. El
+archivo es un borrador revisable.
+
+La aplicación **no** ejecuta un validador completo de JSON Schema ni una
+validación semántica completa de OpenAPI, y no comprueba la corrección
+semántica de la salida. Que una salida cumpla un esquema no demuestra que sea
+correcta ni que un modelo la produzca.
 
 ## 9. Verificación
 

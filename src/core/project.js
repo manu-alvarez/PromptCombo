@@ -1,6 +1,7 @@
 /* Modelo de proyecto, validación estructural y serialización. */
 import { getRecipe } from '../data/studio-recipes.js';
 import { getResource } from '../data/library-resources.js';
+import { validateJsonInstance, validateSchemaDefinition } from './json-schema.js';
 import { slugify } from './format.js';
 
 export const PROJECT_SCHEMA_VERSION = 1;
@@ -230,6 +231,193 @@ function validateMarkdownLinks(artifact, artifactPaths, validations) {
   }
 }
 
+function validateYamlArtifact(artifact, validations, project) {
+  if (!artifact.path.endsWith('.yaml') && !artifact.path.endsWith('.yml')) return;
+  const content = artifact.content;
+  if (/^\t/m.test(content)) {
+    validations.push({
+      severity: 'warning',
+      code: 'yaml-tabs',
+      path: artifact.path,
+      message: 'El YAML contiene tabulaciones; revisa la indentación.'
+    });
+  }
+
+  if (!/^openapi:\s*3\./m.test(content)) return;
+
+  for (const [index, line] of content.split(/\r?\n/).entries()) {
+    if (!line.trim() || line.trim().startsWith('#')) continue;
+    const indent = line.match(/^ */)[0].length;
+    if (indent % 2 !== 0) {
+      validations.push({
+        severity: 'warning',
+        code: 'yaml-indentation',
+        path: artifact.path,
+        message: `Indentación impar en la línea ${index + 1}.`
+      });
+    }
+    const trimmed = line.trim();
+    if (!trimmed.startsWith('-') && !/^[^\s:#][^:]*:(\s|$)/.test(trimmed)) {
+      validations.push({
+        severity: 'warning',
+        code: 'yaml-syntax',
+        path: artifact.path,
+        message: `Línea ${index + 1} sin formato clave: valor reconocible.`
+      });
+    }
+  }
+
+  const required = [
+    ['openapi', /^openapi:\s*3\.[0-9]+/m],
+    ['info', /^info:\s*$/m],
+    ['title', /^\s+title:\s*\S/m],
+    ['version', /^\s+version:\s*\S/m],
+    ['paths', /^paths:\s*/m]
+  ];
+  for (const [name, pattern] of required) {
+    if (!pattern.test(content)) {
+      validations.push({
+        severity: 'error',
+        code: 'openapi-structure',
+        path: artifact.path,
+        message: `Falta la sección o valor requerido: ${name}.`
+      });
+    }
+  }
+
+  if (/\$ref:\s*['"]?https?:/m.test(content)) {
+    validations.push({
+      severity: 'warning',
+      code: 'openapi-external-ref',
+      path: artifact.path,
+      message: 'Hay referencias externas que no se han comprobado.'
+    });
+  }
+
+  for (const match of content.matchAll(/\$ref:\s*['"]?#\/components\/schemas\/([^'"\s]+)/g)) {
+    const name = match[1];
+    const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    if (!new RegExp(`^\\s{4}${escaped}:`, 'm').test(content)) {
+      validations.push({
+        severity: 'error',
+        code: 'openapi-broken-ref',
+        path: artifact.path,
+        message: `La referencia #/components/schemas/${name} no existe.`
+      });
+    }
+  }
+
+  for (const pathMatch of content.matchAll(/^  ['"]?(\/[^'":]*?)['"]?:$/gm)) {
+    const pathValue = pathMatch[1];
+    for (const param of pathValue.matchAll(/\{([^}]+)\}/g)) {
+      if (!content.includes(`name: "${param[1]}"`) && !content.includes(`name: ${param[1]}`)) {
+        validations.push({
+          severity: 'error',
+          code: 'openapi-missing-parameter',
+          path: artifact.path,
+          message: `La ruta ${pathValue} usa {${param[1]}} sin declarar el parámetro.`
+        });
+      }
+    }
+  }
+
+  const operationLines = String(project?.values?.operations || '')
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean);
+  for (const line of operationLines) {
+    const [method, route] = line.split(/\s+/);
+    if (!method || !route || !route.startsWith('/')) continue;
+    if (!content.includes(`"${route}":`) && !content.includes(`${route}:`)) {
+      validations.push({
+        severity: 'warning',
+        code: 'openapi-operation-missing',
+        path: artifact.path,
+        message: `La operación declarada ${method.toUpperCase()} ${route} no aparece en el YAML.`
+      });
+      continue;
+    }
+    if (!new RegExp(`^    ${method.toLowerCase()}:`, 'm').test(content)) {
+      validations.push({
+        severity: 'warning',
+        code: 'openapi-method-missing',
+        path: artifact.path,
+        message: `Falta el método ${method.toUpperCase()} en ${route}.`
+      });
+    }
+  }
+
+  validations.push({
+    severity: 'info',
+    code: 'openapi-draft',
+    path: artifact.path,
+    message: 'OpenAPI se valida estructuralmente; no se ejecuta una validación semántica completa.'
+  });
+}
+
+function validateSchemaExamples(project, validations) {
+  const artifacts = project.artifacts || [];
+  const schemas = artifacts.filter((artifact) => artifact.path.endsWith('.schema.json'));
+
+  for (const schemaArtifact of schemas) {
+    let schema;
+    try {
+      schema = JSON.parse(schemaArtifact.content);
+    } catch {
+      continue;
+    }
+
+    const structure = validateSchemaDefinition(schema);
+    if (!structure.valid) {
+      validations.push({
+        severity: 'error',
+        code: 'schema-structure',
+        path: schemaArtifact.path,
+        message: `El esquema usa una estructura no soportada: ${structure.errors[0]?.message || 'error desconocido'}`
+      });
+      continue;
+    }
+
+    validations.push({
+      severity: 'info',
+      code: 'schema-partial',
+      path: schemaArtifact.path,
+      message: 'Validación de instancias limitada al subconjunto type/properties/required/additionalProperties/items/enum; no es un validador completo de JSON Schema.'
+    });
+
+    const base = schemaArtifact.path.split('/').pop().replace(/\.schema\.json$/, '');
+    for (const suffix of ['-output.json', '-invalid.json']) {
+      const candidate = artifacts.find((artifact) => artifact.path === `examples/${base}${suffix}`);
+      if (!candidate) continue;
+
+      let instance;
+      try {
+        instance = JSON.parse(candidate.content);
+      } catch {
+        continue;
+      }
+
+      const result = validateJsonInstance(schema, instance);
+      if (suffix === '-output.json' && !result.valid) {
+        validations.push({
+          severity: 'error',
+          code: 'schema-instance-invalid',
+          path: candidate.path,
+          message: `La salida de ejemplo no cumple el esquema: ${result.errors[0]?.message || 'error desconocido'}`
+        });
+      }
+      if (suffix === '-invalid.json' && result.valid) {
+        validations.push({
+          severity: 'error',
+          code: 'schema-invalid-example-accepted',
+          path: candidate.path,
+          message: 'El ejemplo marcado como inválido sí cumple el esquema generado.'
+        });
+      }
+    }
+  }
+}
+
 export function validateProject(project) {
   const validations = [];
   const recipe = getRecipe(project?.recipeId);
@@ -448,6 +636,10 @@ export function validateProject(project) {
     });
   }
 
+  validateSchemaExamples(project, validations);
+  for (const artifact of project.artifacts) {
+    if (artifact?.content) validateYamlArtifact(artifact, validations, project);
+  }
   return validations;
 }
 

@@ -45,6 +45,7 @@ Consulta `docs/CONTRACTS.md` y `docs/adr/0001-prompt-composer-boundary.md`.
 - Las recetas y el estado vacío del preview viven en `src/data/recipes.js`.
 - Las 21 recetas y 8 familias del generador viven en `src/data/studio-recipes.js`.
 - La biblioteca de 221 recursos vive en `src/data/library-resources.js` y `src/data/command-defs.js`.
+- `src/data/library-modules.js` adapta 37 skills y 15 roles de la biblioteca al formato del catálogo avanzado sin duplicar contenido.
 - Los datos son objetos inmutables por convención. Añadir un módulo requiere una entrada con ID único, código y los campos de su tipo.
 
 ### Core
@@ -59,6 +60,7 @@ Consulta `docs/CONTRACTS.md` y `docs/adr/0001-prompt-composer-boundary.md`.
 | `core/persistence.js` | Persistencia de la composición avanzada |
 | `core/generator.js` | Generación determinista de artefactos y adaptadores de destino |
 | `core/project.js` | Modelo de proyecto, rutas seguras, validación e import/export |
+| `core/json-schema.js` | Validación del subconjunto de JSON Schema generado y de instancias de ejemplo |
 | `core/project-store.js` | Persistencia versionada de proyectos y guardados |
 | `core/zip.js` | ZIP determinista sin compresión, con CRC32 |
 | `core/studio-intent.js` | Interpretación local de necesidades por palabras clave |
@@ -164,6 +166,8 @@ Todos los módulos tienen `id`, `code`, `short`, `title` y `tagline`. Los campos
 | `scaffold` | `usage`, `tree`, `rules` |
 
 La validación comprueba cantidades exactas, IDs y códigos únicos, tokens de variables, referencias de recetas y compilación de los 108 módulos del catálogo avanzado. También valida las 21 recetas, sus familias, destinos y los 221 recursos de la biblioteca.
+
+La validación de formatos separa parseo JSON, estructura de esquema, instancias de ejemplo y comprobación estructural de OpenAPI. Los límites y problemas conocidos se documentan en `docs/RELEASE-NOTES.md`.
 
 ## 5. Pipeline de build
 

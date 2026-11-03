@@ -83,6 +83,29 @@
     <button class="mode-tab" type="button" data-view="advanced">Avanzado</button>
   </nav>
 
+  <div class="studio-conflict" id="studioConflict" role="alert" hidden>
+    <div class="studio-conflict-copy">
+      <strong>Hay una versión más reciente en otra pestaña.</strong>
+      <span id="studioConflictText"></span>
+    </div>
+    <div class="studio-conflict-actions">
+      <button class="ui-button ghost" type="button" id="conflictReloadBtn">Usar versión externa</button>
+      <button class="ui-button primary" type="button" id="conflictKeepBtn">Conservar la mía</button>
+      <button class="text-button" type="button" id="conflictExportBtn">Exportar mi copia</button>
+    </div>
+  </div>
+
+  <div class="studio-conflict" id="sessionConflict" role="alert" hidden>
+    <div class="studio-conflict-copy">
+      <strong>La composición avanzada cambió en otra pestaña.</strong>
+      <span id="sessionConflictText">El guardado automático está pausado para no sobrescribir la versión externa.</span>
+    </div>
+    <div class="studio-conflict-actions">
+      <button class="ui-button primary" type="button" id="sessionKeepBtn">Conservar la mía</button>
+      <button class="text-button" type="button" id="sessionExportBtn">Exportar mi copia</button>
+    </div>
+  </div>
+
   <noscript>
     <div class="noscript-banner">PromptCombo necesita JavaScript para generar los archivos. Activa JavaScript y vuelve a abrir el archivo.</div>
   </noscript>
@@ -258,7 +281,7 @@
                 </div>
                 <span class="studio-muted" id="projectResourceCount">0</span>
               </div>
-              <p class="studio-help">Los recursos seleccionados generan referencias en <code>library/</code>. Añadir un recurso no lo instala ni lo ejecuta.</p>
+              <p class="studio-help">Los recursos seleccionados generan referencias en <code>library/</code>. Añadir un recurso no lo instala, no lo ejecuta y no altera la composición del prompt maestro.</p>
               <div class="resource-chips" id="projectResources"></div>
               <div class="project-generate-row">
                 <button class="text-button" type="button" data-view="library">Explorar biblioteca</button>

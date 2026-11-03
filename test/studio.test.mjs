@@ -183,6 +183,15 @@ test('los proyectos se guardan y se recuperan del almacenamiento local', () => {
     setItem: () => { throw new Error('blocked'); },
     removeItem: () => { throw new Error('blocked'); }
   };
-  assert.deepEqual(loadStudioState(broken), { currentProject: null, savedProjects: [] });
+  assert.deepEqual(loadStudioState(broken), { currentProject: null, savedProjects: [], corrupted: true });
   assert.equal(saveStudioState({ currentProject: project, savedProjects: [] }, broken), false);
+});
+
+test('un estado corrupto se conserva en la clave de respaldo', () => {
+  const storage = createStorage();
+  storage.setItem('promptcombo.studio.v1', '{bad');
+  const loaded = loadStudioState(storage);
+  assert.equal(loaded.corrupted, true);
+  assert.equal(loaded.currentProject, null);
+  assert.equal(storage.getItem('promptcombo.studio.v1.backup'), '{bad');
 });

@@ -51,6 +51,7 @@ const state = {
   libraryStatus: 'all',
   libraryTarget: 'all',
   selectedResource: null,
+  externalConflict: null,
   selectedArtifact: null,
   saveTimer: null,
   storageWarned: false
@@ -95,6 +96,11 @@ const els = {
   libraryResetBtn: byId('libraryResetBtn'),
   projectResources: byId('projectResources'),
   projectResourceCount: byId('projectResourceCount'),
+  studioConflict: byId('studioConflict'),
+  studioConflictText: byId('studioConflictText'),
+  conflictReloadBtn: byId('conflictReloadBtn'),
+  conflictKeepBtn: byId('conflictKeepBtn'),
+  conflictExportBtn: byId('conflictExportBtn'),
   projectEmpty: byId('projectEmpty'),
   projectWorkspace: byId('projectWorkspace'),
   projectFamily: byId('projectFamily'),
@@ -221,8 +227,16 @@ export function initStudio() {
   const loaded = loadStudioState();
   state.project = loaded.currentProject;
   state.saved = loaded.savedProjects;
+  updateConflictBanner();
 
   setView(state.project ? 'project' : 'create');
+
+  if (loaded.corrupted) {
+    showToast('No se pudo leer un proyecto guardado. Se conservó una copia de respaldo en el navegador.', {
+      tone: 'error',
+      duration: 6000
+    });
+  }
 
   if (!getStorage()) {
     showToast('El almacenamiento local no está disponible. Los proyectos no se guardarán al cerrar.', {
@@ -391,6 +405,7 @@ function renderLibraryDetail(resource) {
     <h4>Entradas</h4>${list(resource.inputs)}
     <h4>Salidas</h4>${list(resource.outputs)}
     ${related ? `<h4>Relacionados</h4><div class="library-related">${related}</div>` : ''}
+    <p class="studio-muted">Añadir este recurso genera documentación de referencia; no modifica la composición avanzada ni el prompt maestro.</p>
     <p class="studio-muted">Origen: ${escapeHTML(resource.provenance?.origin || 'no declarado')} · Revisión: ${escapeHTML(resource.lastReviewed || 'pendiente')}</p>`;
 
   els.libraryAddBtn.hidden = !canAdd && !isProjectRecipe;
@@ -430,7 +445,7 @@ function addResourceToProject(id) {
   renderProjectResources();
   renderLibraryDetail(resource);
   if (state.view === 'project') refreshAfterEdit();
-  showToast(`Recurso añadido: ${resource.title}`, { tone: 'success', duration: 1800 });
+  showToast(`Referencia añadida: ${resource.title}. No modifica el prompt maestro.`, { tone: 'success', duration: 2400 });
 }
 
 function removeResourceFromProject(id) {
@@ -504,9 +519,22 @@ function analyzeGoal() {
     </div>`;
 }
 
+function projectHasUserContent(project) {
+  if (!project) return false;
+  if ((project.artifacts || []).length > 0) return true;
+  return Object.entries(project.values || {}).some(([key, value]) => {
+    if (key === 'projectName' || !String(value || '').trim()) return false;
+    return !(project.defaultedFields || []).includes(key);
+  });
+}
+
 function startRecipe(recipeId) {
   const recipe = getRecipe(recipeId);
   if (!recipe) return;
+  if (state.externalConflict) {
+    showToast('Resuelve el conflicto de pestañas antes de abrir otro proyecto.', { tone: 'error', duration: 3200 });
+    return;
+  }
 
   if (state.project && (state.project.artifacts.length > 0 || state.project.values?.goal)) {
     saveCurrentToSaved(false);
@@ -525,6 +553,14 @@ function startRecipe(recipeId) {
 
 function saveCurrentToSaved(notify = true) {
   if (!state.project) return false;
+  if (state.externalConflict) {
+    updateConflictBanner();
+    showToast('Hay un conflicto de pestañas pendiente. Elige qué versión conservar antes de guardar.', {
+      tone: 'error',
+      duration: 3600
+    });
+    return false;
+  }
   touchProject(state.project);
 
   const copy = JSON.parse(serializeProject(state.project));
@@ -543,6 +579,7 @@ function saveCurrentToSaved(notify = true) {
 }
 
 function persistNow() {
+  if (state.externalConflict) return false;
   const saved = saveStudioState({ currentProject: state.project, savedProjects: state.saved });
   if (!saved && !state.storageWarned) {
     state.storageWarned = true;
@@ -552,6 +589,74 @@ function persistNow() {
     });
   }
   return saved;
+}
+
+function updateConflictBanner() {
+  const conflict = state.externalConflict;
+  els.studioConflict.hidden = !conflict;
+  if (!conflict) {
+    els.studioConflictText.textContent = '';
+    return;
+  }
+
+  const external = conflict.currentProject;
+  els.studioConflictText.textContent = external
+    ? `«${external.title}» tiene cambios más recientes en otra pestaña. No se guardará nada hasta que elijas una versión.`
+    : 'Otra pestaña vació el proyecto actual. Elige si conservar esta copia o cargar el estado externo.';
+}
+
+function handleStudioStorage(event) {
+  if (event.key !== 'promptcombo.studio.v1') return;
+
+  const external = loadStudioState();
+  const local = state.project;
+  const externalProject = external.currentProject;
+
+  if (!local && !externalProject) return;
+  if (local && externalProject && local.id === externalProject.id && (externalProject.updatedAt || 0) <= (local.updatedAt || 0)) {
+    state.saved = external.savedProjects;
+    if (state.externalConflict) {
+      state.externalConflict = null;
+      updateConflictBanner();
+    }
+    return;
+  }
+
+  state.externalConflict = external;
+  updateConflictBanner();
+  showToast('Otra pestaña tiene una versión más reciente del proyecto. Revisa el aviso antes de guardar.', {
+    tone: 'error',
+    duration: 5200
+  });
+}
+
+function resolveConflictWithExternal() {
+  if (!state.externalConflict) return;
+  const external = state.externalConflict;
+  state.project = external.currentProject;
+  state.saved = external.savedProjects;
+  state.selectedArtifact = state.project?.artifacts?.[0]?.path || null;
+  state.externalConflict = null;
+  updateConflictBanner();
+  setView(state.project ? 'project' : 'create');
+  showToast('Versión externa cargada. Revisa el estado antes de continuar.', { tone: 'success', duration: 2600 });
+}
+
+function resolveConflictKeepingMine() {
+  if (!state.externalConflict) return;
+  state.externalConflict = null;
+  updateConflictBanner();
+  const saved = persistNow();
+  showToast(saved ? 'Tu copia se guardó y sustituyó la versión externa.' : 'No se pudo guardar tu copia.', {
+    tone: saved ? 'success' : 'error',
+    duration: 2600
+  });
+}
+
+function exportConflictCopy() {
+  if (!state.project) return;
+  downloadText(serializeProject(state.project), projectFileName(state.project), 'application/json;charset=utf-8');
+  showToast('Copia local exportada; el conflicto sigue pendiente.', { duration: 2600 });
 }
 
 function scheduleSave() {
@@ -960,6 +1065,10 @@ function exportProject() {
 }
 
 async function importProject(file) {
+  if (state.externalConflict) {
+    showToast('Resuelve el conflicto de pestañas antes de importar.', { tone: 'error', duration: 3200 });
+    return;
+  }
   if (!stateIsProjectSafe(file)) {
     showToast('El archivo supera el límite de 2 MB o no es válido.', { tone: 'error', duration: 4000 });
     return;
@@ -994,6 +1103,10 @@ async function importProject(file) {
 }
 
 function newProject() {
+  if (state.externalConflict) {
+    showToast('Resuelve el conflicto de pestañas antes de crear otro proyecto.', { tone: 'error', duration: 3200 });
+    return;
+  }
   if (state.project && (state.project.artifacts.length > 0 || state.project.values?.goal)) {
     saveCurrentToSaved(false);
   }
@@ -1029,6 +1142,10 @@ function renderSaved() {
 function openSaved(id) {
   const project = state.saved.find((item) => item.id === id);
   if (!project) return;
+  if (state.externalConflict) {
+    showToast('Resuelve el conflicto de pestañas antes de abrir otro proyecto.', { tone: 'error', duration: 3200 });
+    return;
+  }
   if (state.project) saveCurrentToSaved(false);
   const parsed = parseProjectJson(serializeProject(project));
   if (!parsed.ok) {
@@ -1046,6 +1163,10 @@ function openSaved(id) {
 function deleteSaved(id) {
   const project = state.saved.find((item) => item.id === id);
   if (!project) return;
+  if (state.externalConflict) {
+    showToast('Resuelve el conflicto de pestañas antes de eliminar guardados.', { tone: 'error', duration: 3200 });
+    return;
+  }
   if (!window.confirm(`¿Eliminar «${project.title}» de los guardados?`)) return;
   state.saved = state.saved.filter((item) => item.id !== id);
   persistNow();
@@ -1253,9 +1374,20 @@ function bindStudioEvents() {
     if (!state.project) return;
     const next = event.target.value;
     if (next === state.project.recipeId) return;
-    if (state.project.artifacts.length > 0 && !window.confirm('Cambiar de plantilla vaciará los archivos generados. Los campos compatibles se conservarán. ¿Continuar?')) {
+    if (state.externalConflict) {
       event.target.value = state.project.recipeId;
+      showToast('Resuelve el conflicto de pestañas antes de cambiar de plantilla.', { tone: 'error', duration: 3200 });
       return;
+    }
+    if (projectHasUserContent(state.project)) {
+      const editedCount = state.project.artifacts.filter((artifact) => artifact.editedByUser).length;
+      const message = editedCount > 0
+        ? `Hay ${editedCount} archivo(s) editado(s) manualmente. Cambiar de plantilla conservará solo los campos compatibles y descartará esos cambios. ¿Continuar?`
+        : 'Cambiar de plantilla conservará solo los campos compatibles y vaciará los archivos generados. ¿Continuar?';
+      if (!window.confirm(message)) {
+        event.target.value = state.project.recipeId;
+        return;
+      }
     }
     state.project = changeRecipe(state.project, next);
     state.selectedArtifact = null;
@@ -1296,6 +1428,11 @@ function bindStudioEvents() {
     event.target.value = '';
     await importProject(file);
   });
+
+  els.conflictReloadBtn.addEventListener('click', resolveConflictWithExternal);
+  els.conflictKeepBtn.addEventListener('click', resolveConflictKeepingMine);
+  els.conflictExportBtn.addEventListener('click', exportConflictCopy);
+  window.addEventListener('storage', handleStudioStorage);
 
   window.addEventListener('pagehide', flushSave);
   document.addEventListener('visibilitychange', () => {
