@@ -1,0 +1,85 @@
+/* ============================================================
+   10 · TOASTS
+   ============================================================ */
+.toast-region {
+  position: fixed;
+  z-index: 200;
+  right: 22px;
+  bottom: 22px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+  width: min(360px, calc(100vw - 32px));
+  pointer-events: none;
+}
+
+.toast {
+  --toast-accent: var(--cyan);
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: auto;
+  max-width: 100%;
+  min-height: 42px;
+  padding: 10px 12px;
+  border: 1px solid var(--line-strong);
+  border-left: 2px solid var(--toast-accent);
+  border-radius: 9px;
+  background: rgba(13, 13, 21, 0.96);
+  box-shadow: 0 16px 42px rgba(0, 0, 0, 0.48), 0 0 22px color-mix(in srgb, var(--toast-accent) 7%, transparent);
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 9.5px;
+  line-height: 1.45;
+  pointer-events: auto;
+  opacity: 0;
+  transform: translateY(8px) scale(0.98);
+  transition: opacity 180ms ease, transform 180ms ease;
+}
+
+.toast.is-visible {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+.toast.is-leaving {
+  opacity: 0;
+  transform: translateY(5px) scale(0.985);
+}
+
+.toast-success {
+  --toast-accent: var(--acid);
+}
+
+.toast-warning {
+  --toast-accent: var(--amber);
+}
+
+.toast-error {
+  --toast-accent: var(--danger);
+}
+
+.toast-message {
+  flex: 1;
+  min-width: 0;
+}
+
+.toast-action {
+  flex: 0 0 auto;
+  padding: 3px 6px;
+  border: 1px solid var(--line-strong);
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--toast-accent);
+  font-family: var(--mono);
+  font-size: 8px;
+  font-weight: 600;
+  letter-spacing: 0.055em;
+  text-transform: uppercase;
+}
+
+.toast-action:hover {
+  border-color: var(--toast-accent);
+  background: rgba(255, 255, 255, 0.06);
+}

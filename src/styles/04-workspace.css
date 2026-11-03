@@ -1,0 +1,200 @@
+/* ============================================================
+   04 · WORKSPACE / PANELES
+   ============================================================ */
+.workspace {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: minmax(292px, 0.88fr) minmax(400px, 1.25fr) minmax(344px, 1fr);
+  gap: 12px;
+  width: 100%;
+  max-width: 1920px;
+  height: calc(100vh - 76px);
+  height: calc(100dvh - 76px);
+  margin: 0 auto;
+  padding: 12px 16px 16px;
+}
+
+.panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background:
+    linear-gradient(160deg, rgba(26, 26, 39, 0.74) 0%, rgba(15, 15, 24, 0.9) 60%, rgba(11, 11, 18, 0.92) 100%);
+  box-shadow: var(--shadow-panel);
+  backdrop-filter: blur(18px) saturate(115%);
+  -webkit-backdrop-filter: blur(18px) saturate(115%);
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.panel::before {
+  content: "";
+  position: absolute;
+  z-index: 2;
+  top: 0;
+  left: 24px;
+  right: 24px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--panel-accent, var(--cyan)), transparent);
+  opacity: 0.42;
+  pointer-events: none;
+}
+
+.panel::after {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  right: -100px;
+  top: -140px;
+  width: 280px;
+  height: 280px;
+  border-radius: 50%;
+  background: var(--panel-glow, rgba(0, 243, 255, 0.035));
+  filter: blur(30px);
+  pointer-events: none;
+}
+
+.panel-catalog {
+  --panel-accent: var(--cyan);
+  --panel-glow: rgba(0, 243, 255, 0.04);
+}
+
+.panel-builder {
+  --panel-accent: var(--magenta);
+  --panel-glow: rgba(255, 0, 255, 0.035);
+}
+
+.panel-preview {
+  --panel-accent: var(--acid);
+  --panel-glow: rgba(57, 255, 20, 0.025);
+}
+
+.panel-head {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex: 0 0 auto;
+  padding: 19px 20px 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.055);
+}
+
+.heading-group {
+  min-width: 0;
+}
+
+.eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--dim);
+  font-family: var(--mono);
+  font-size: 8px;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.eyebrow-index {
+  color: var(--panel-accent, var(--cyan));
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+
+.eyebrow-small {
+  font-size: 7px;
+}
+
+.panel-head h2 {
+  margin-top: 8px;
+  color: var(--text-strong);
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  line-height: 1.15;
+}
+
+.panel-catalog .panel-head h2 {
+  text-shadow: 0 0 30px rgba(0, 243, 255, 0.08);
+}
+
+.count-badge {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 5px;
+  flex: 0 0 auto;
+  padding: 5px 8px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 10px;
+  line-height: 1;
+  background: rgba(0, 0, 0, 0.14);
+}
+
+.count-badge-label {
+  color: var(--dim);
+  font-size: 7px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.mini-count {
+  display: inline-grid;
+  place-items: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  border: 1px solid rgba(255, 0, 255, 0.18);
+  border-radius: 5px;
+  background: rgba(255, 0, 255, 0.06);
+  color: rgba(255, 133, 255, 0.9);
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.text-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  text-decoration: none;
+  transition: color 150ms ease;
+}
+
+.text-button:hover {
+  color: var(--text-strong);
+}
+
+.text-button:disabled {
+  opacity: 0.32;
+}
+
+.danger-text:hover:not(:disabled) {
+  color: var(--danger);
+}
+
+@keyframes led-breathe {
+  0%, 100% { opacity: 0.7; box-shadow: 0 0 5px rgba(57, 255, 20, 0.45); }
+  50% { opacity: 1; box-shadow: 0 0 13px rgba(57, 255, 20, 0.9); }
+}

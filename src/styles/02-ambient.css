@@ -1,0 +1,36 @@
+/* ============================================================
+   02 · FONDO AMBIENTAL
+   ============================================================ */
+.ambient-grid {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+  background-size: 46px 46px;
+  mask-image: radial-gradient(ellipse at 50% 30%, black 0, transparent 78%);
+  -webkit-mask-image: radial-gradient(ellipse at 50% 30%, black 0, transparent 78%);
+}
+
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(180deg, transparent 60%, rgba(2, 2, 5, 0.42) 100%);
+}
+
+.noscript-banner {
+  position: relative;
+  z-index: 20;
+  margin: 10px 16px 0;
+  padding: 12px 16px;
+  border: 1px solid rgba(255, 93, 122, 0.4);
+  border-radius: 10px;
+  background: rgba(255, 93, 122, 0.1);
+  color: #ffd7de;
+  font-size: 13px;
+}

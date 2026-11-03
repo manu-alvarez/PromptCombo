@@ -1,0 +1,463 @@
+/* ============================================================
+   12 · RESPONSIVE
+   ============================================================ */
+@media (max-width: 1280px) {
+  .workspace {
+    grid-template-columns: minmax(280px, 0.84fr) minmax(380px, 1.18fr) minmax(328px, 0.98fr);
+    gap: 10px;
+    padding: 10px 12px 12px;
+  }
+
+  .panel-head {
+    padding: 17px 17px 12px;
+  }
+
+  .catalog-controls {
+    padding: 10px 12px 3px;
+  }
+
+  .sequence-area {
+    padding: 10px 12px 14px;
+  }
+
+  .combo-item {
+    gap: 8px;
+  }
+
+  .combo-desc {
+    max-width: 330px;
+  }
+}
+
+@media (max-width: 1120px) {
+  body {
+    overflow-y: auto;
+  }
+
+  .topbar {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+  }
+
+  .workspace {
+    grid-template-columns: minmax(290px, 0.78fr) minmax(0, 1.35fr);
+    grid-template-rows: minmax(620px, calc(100dvh - 100px)) 580px;
+    height: auto;
+    min-height: calc(100dvh - 76px);
+  }
+
+  .panel-preview {
+    grid-column: 1 / -1;
+  }
+
+  .panel-preview .preview-window {
+    min-height: 300px;
+  }
+
+  .toast-region {
+    bottom: 16px;
+    right: 16px;
+  }
+}
+
+@media (max-width: 900px) {
+  .topbar-status {
+    display: none;
+  }
+
+  .topbar {
+    gap: 16px;
+  }
+
+  .workspace {
+    grid-template-columns: minmax(260px, 0.72fr) minmax(0, 1.28fr);
+  }
+
+  .footer-hint {
+    display: none;
+  }
+
+  .dialog-foot-note {
+    display: none;
+  }
+
+  .dialog-foot {
+    justify-content: flex-end;
+  }
+}
+
+@media (max-width: 820px) {
+  body {
+    overflow-y: auto;
+  }
+
+  .topbar {
+    height: 68px;
+    padding: 0 13px;
+  }
+
+  .brand-mark {
+    width: 38px;
+    height: 38px;
+  }
+
+  .brand-copy h1 {
+    font-size: 17px;
+  }
+
+  .brand-copy p {
+    font-size: 7px;
+    letter-spacing: 0.12em;
+  }
+
+  .workspace {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    height: auto;
+    padding: 10px;
+    gap: 10px;
+  }
+
+  .panel-catalog,
+  .panel-builder,
+  .panel-preview {
+    height: max(610px, calc(100dvh - 90px));
+    min-height: 0;
+  }
+
+  .panel-preview {
+    height: max(620px, calc(100dvh - 90px));
+  }
+
+  .empty-state {
+    justify-content: flex-start;
+    padding-top: 28px;
+  }
+
+  .recipe-grid {
+    grid-template-columns: 1fr;
+    max-width: 380px;
+  }
+
+  .recipe-copy strong,
+  .recipe-copy small {
+    white-space: normal;
+  }
+
+  .recipe-card > .icon {
+    transform: rotate(90deg);
+  }
+
+  .detail-dialog {
+    width: calc(100vw - 18px);
+    max-height: calc(100dvh - 18px);
+  }
+
+  .dialog-shell {
+    max-height: calc(100dvh - 18px);
+  }
+
+  .detail-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .detail-block-full {
+    grid-column: auto;
+  }
+
+  .dialog-head {
+    padding: 17px 17px 14px;
+  }
+
+  .dialog-head h2 {
+    font-size: 19px;
+  }
+
+  .dialog-body {
+    padding: 15px 17px 18px;
+  }
+
+  .dialog-foot {
+    padding: 11px 17px;
+  }
+}
+
+@media (max-width: 560px) {
+  .topbar {
+    height: 64px;
+  }
+
+  .brand {
+    gap: 9px;
+  }
+
+  .brand-mark {
+    width: 34px;
+    height: 34px;
+  }
+
+  .brand-copy h1 {
+    font-size: 15px;
+  }
+
+  .brand-copy p {
+    margin-top: 5px;
+    font-size: 6.5px;
+  }
+
+  .brand-version {
+    display: none;
+  }
+
+  .topbar-actions {
+    gap: 6px;
+  }
+
+  .topbar-actions .ui-button {
+    width: 36px;
+    padding: 0;
+  }
+
+  .topbar-actions .ui-button span {
+    display: none;
+  }
+
+  .panel {
+    border-radius: 13px;
+  }
+
+  .panel-head {
+    padding: 15px 14px 11px;
+  }
+
+  .panel-head h2 {
+    font-size: 16px;
+  }
+
+  .catalog-controls {
+    padding: 10px 11px 2px;
+  }
+
+  .catalog-scroll {
+    padding: 4px 7px 12px;
+  }
+
+  .catalog-footer,
+  .builder-footer {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .variables-shell {
+    max-height: 42vh;
+    margin: 9px 10px 0;
+    padding: 10px;
+  }
+
+  .variables-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .variable-field.is-full {
+    grid-column: auto;
+  }
+
+  .sequence-area {
+    padding: 9px 10px 12px;
+  }
+
+  .empty-visual {
+    width: 96px;
+    height: 96px;
+  }
+
+  .empty-core {
+    inset: 32px;
+  }
+
+  .empty-state h3 {
+    font-size: 19px;
+  }
+
+  .empty-copy {
+    font-size: 10.5px;
+  }
+
+  .recipe-grid {
+    margin-top: 14px;
+  }
+
+  .combo-item {
+    grid-template-columns: 24px minmax(0, 1fr);
+    gap: 7px;
+    padding: 9px 8px;
+  }
+
+  .combo-rail {
+    grid-row: 1 / span 2;
+    align-self: center;
+  }
+
+  .combo-grip {
+    display: none;
+  }
+
+  .combo-actions {
+    grid-column: 2;
+    justify-content: flex-end;
+    width: 100%;
+    margin-top: 2px;
+    opacity: 1;
+  }
+
+  .action-btn {
+    width: 27px;
+    height: 25px;
+  }
+
+  .preview-toolbar {
+    padding: 9px 11px 0;
+  }
+
+  .preview-window {
+    margin: 8px 11px 0;
+  }
+
+  #previewOutput {
+    padding: 12px 12px 24px;
+    font-size: 9.5px;
+  }
+
+  .preview-meta {
+    padding: 7px 12px 0;
+  }
+
+  .copy-zone {
+    padding: 10px 11px;
+  }
+
+  .copy-button {
+    min-height: 50px;
+    padding: 0 11px;
+    font-size: 10px;
+    letter-spacing: 0.05em;
+  }
+
+  .copy-arrow {
+    display: none;
+  }
+
+  .local-note {
+    font-size: 6.5px;
+  }
+
+  .variable-warning {
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .dialog-head,
+  .dialog-body,
+  .dialog-foot {
+    padding-left: 13px;
+    padding-right: 13px;
+  }
+
+  .detail-facts {
+    grid-template-columns: 1fr;
+  }
+
+  .dialog-foot .ui-button {
+    width: 100%;
+  }
+
+  .toast-region {
+    right: 10px;
+    bottom: 10px;
+    width: calc(100vw - 20px);
+  }
+}
+
+@media (max-height: 720px) and (min-width: 1121px) {
+  .topbar {
+    height: 66px;
+  }
+
+  .workspace {
+    height: calc(100dvh - 66px);
+    padding-top: 9px;
+    padding-bottom: 10px;
+  }
+
+  .panel-head {
+    padding-top: 14px;
+    padding-bottom: 10px;
+  }
+
+  .empty-visual {
+    width: 92px;
+    height: 92px;
+    margin-bottom: 8px;
+  }
+
+  .empty-core {
+    inset: 31px;
+  }
+
+  .empty-copy {
+    margin-top: 5px;
+  }
+
+  .recipe-grid {
+    margin-top: 12px;
+  }
+
+  .copy-button {
+    min-height: 46px;
+  }
+
+  .copy-zone {
+    padding-top: 9px;
+    padding-bottom: 9px;
+  }
+
+  .local-note {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@media (forced-colors: active) {
+  .panel,
+  .catalog-item,
+  .combo-item,
+  .recipe-card,
+  .detail-block,
+  .toast {
+    border: 1px solid CanvasText;
+  }
+
+  .status-led,
+  .live-dot,
+  .window-dot {
+    background: CanvasText;
+  }
+
+  .copy-button {
+    border: 1px solid ButtonText;
+    background: ButtonFace;
+    color: ButtonText;
+  }
+}

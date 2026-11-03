@@ -1,0 +1,38 @@
+{
+  "name": "promptcombo",
+  "version": "2.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Consola offline para componer, ordenar y copiar prompts maestros con roles, agentes, flujos y skills.",
+  "homepage": "https://github.com/manu-alvarez/PromptCombo",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/manu-alvarez/PromptCombo.git"
+  },
+  "bugs": {
+    "url": "https://github.com/manu-alvarez/PromptCombo/issues"
+  },
+  "license": "MIT",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "node scripts/serve.mjs --dev --port 8282",
+    "build": "node scripts/build.mjs",
+    "start": "node scripts/serve.mjs --port 8282",
+    "serve": "npm start",
+    "validate": "node scripts/validate-data.mjs",
+    "test": "node --test",
+    "test:watch": "node --test --watch",
+    "check": "npm run validate && npm test && npm run build",
+    "deploy:local": "npm run build && node scripts/service.mjs install",
+    "service:install": "node scripts/service.mjs install",
+    "service:status": "node scripts/service.mjs status",
+    "service:restart": "node scripts/service.mjs restart",
+    "service:uninstall": "node scripts/service.mjs uninstall",
+    "service:logs": "node scripts/service.mjs logs"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.2"
+  }
+}

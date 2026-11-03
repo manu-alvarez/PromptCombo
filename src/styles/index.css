@@ -1,0 +1,13 @@
+/* PromptCombo · hoja de estilos raíz. El build la bundlea en dist/index.html. */
+@import './01-tokens.css';
+@import './02-ambient.css';
+@import './03-topbar.css';
+@import './04-workspace.css';
+@import './05-catalog.css';
+@import './06-builder.css';
+@import './07-sequence.css';
+@import './08-combo.css';
+@import './09-preview.css';
+@import './10-toasts.css';
+@import './11-detail.css';
+@import './12-responsive.css';

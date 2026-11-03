@@ -1,0 +1,195 @@
+/* ============================================================
+   01 · TOKENS / RESET
+   ============================================================ */
+:root {
+  color-scheme: dark;
+  --bg: #0a0a0f;
+  --bg-deep: #06060a;
+  --panel: rgba(21, 21, 32, 0.82);
+  --panel-solid: #151520;
+  --panel-raised: #1a1a27;
+  --line: rgba(224, 224, 224, 0.08);
+  --line-strong: rgba(224, 224, 224, 0.14);
+  --cyan: #00f3ff;
+  --cyan-soft: rgba(0, 243, 255, 0.1);
+  --magenta: #ff00ff;
+  --magenta-soft: rgba(255, 0, 255, 0.1);
+  --acid: #39ff14;
+  --acid-soft: rgba(57, 255, 20, 0.1);
+  --amber: #ffd166;
+  --violet: #b388ff;
+  --text: #e0e0e0;
+  --text-strong: #f7f7fb;
+  --muted: #9999ad;
+  --dim: #808095;
+  --danger: #ff5d7a;
+  --sans: "Inter", "SF Pro Display", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --mono: "SFMono-Regular", "Cascadia Code", "Roboto Mono", Consolas, "Liberation Mono", monospace;
+  --radius-lg: 16px;
+  --radius-md: 12px;
+  --radius-sm: 9px;
+  --shadow-panel: 0 24px 80px rgba(0, 0, 0, 0.44), inset 0 1px 0 rgba(255, 255, 255, 0.025);
+  --focus-ring: 0 0 0 3px rgba(0, 243, 255, 0.16);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  min-width: 320px;
+  min-height: 100%;
+  background: var(--bg);
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  min-height: 100dvh;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 10% -15%, rgba(0, 243, 255, 0.11), transparent 34%),
+    radial-gradient(circle at 100% 5%, rgba(255, 0, 255, 0.09), transparent 30%),
+    radial-gradient(circle at 50% 125%, rgba(57, 255, 20, 0.045), transparent 38%),
+    var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+}
+
+button {
+  color: inherit;
+}
+
+button:not(:disabled) {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
+a {
+  color: var(--cyan);
+}
+
+h1, h2, h3, h4, p {
+  margin: 0;
+}
+
+ul, ol {
+  margin: 0;
+  padding: 0;
+}
+
+svg {
+  display: block;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+::selection {
+  background: rgba(0, 243, 255, 0.25);
+  color: var(--text-strong);
+}
+
+:focus-visible {
+  outline: 2px solid var(--cyan);
+  outline-offset: 3px;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 243, 255, 0.26) transparent;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 243, 255, 0.2);
+  border: 2px solid transparent;
+  border-radius: 20px;
+  background-clip: padding-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 243, 255, 0.35);
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+.svg-sprite {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.icon {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.icon-sm {
+  width: 13px;
+  height: 13px;
+}
+
+.sr-only {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+.skip-link {
+  position: fixed;
+  z-index: 1000;
+  top: 10px;
+  left: 10px;
+  padding: 10px 14px;
+  border: 1px solid var(--cyan);
+  border-radius: 8px;
+  background: var(--bg-deep);
+  color: var(--text-strong);
+  font-family: var(--mono);
+  font-size: 12px;
+  transform: translateY(-160%);
+  transition: transform 150ms ease;
+}
+
+.skip-link:focus {
+  transform: translateY(0);
+}

@@ -1,0 +1,16 @@
+# Dependencias
+node_modules/
+npm-debug.log*
+
+# Artefactos locales
+.DS_Store
+*.log
+coverage/
+playwright-report/
+test-results/
+.playwright-mcp/
+.env
+.env.*
+
+# El build de distribución sí se versiona a propósito:
+# dist/index.html es el entregable offline único.

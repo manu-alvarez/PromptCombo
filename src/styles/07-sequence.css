@@ -1,0 +1,219 @@
+/* ============================================================
+   07 · SECUENCIA / EMPTY STATE
+   ============================================================ */
+.sequence-area {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 12px 14px 16px;
+  overscroll-behavior: contain;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100%;
+  padding: 18px 8px 24px;
+  text-align: center;
+}
+
+.empty-visual {
+  position: relative;
+  width: 116px;
+  height: 116px;
+  margin-bottom: 12px;
+}
+
+.empty-orbit {
+  position: absolute;
+  border: 1px solid rgba(0, 243, 255, 0.12);
+  border-radius: 50%;
+}
+
+.orbit-a {
+  inset: 0;
+  border-style: dashed;
+  animation: orbit-spin 26s linear infinite;
+}
+
+.orbit-b {
+  inset: 12px;
+  border-color: rgba(255, 0, 255, 0.12);
+  animation: orbit-spin-reverse 19s linear infinite;
+}
+
+.orbit-c {
+  inset: 27px;
+  border-color: rgba(57, 255, 20, 0.1);
+}
+
+.empty-orbit::after {
+  content: "";
+  position: absolute;
+  top: -2px;
+  left: 50%;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--cyan);
+  box-shadow: 0 0 9px var(--cyan);
+}
+
+.orbit-b::after {
+  top: auto;
+  right: 5px;
+  bottom: 6px;
+  left: auto;
+  background: var(--magenta);
+  box-shadow: 0 0 9px var(--magenta);
+}
+
+.orbit-c::after {
+  display: none;
+}
+
+.empty-core {
+  position: absolute;
+  inset: 40px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(0, 243, 255, 0.35);
+  background: radial-gradient(circle at 35% 25%, rgba(0, 243, 255, 0.16), rgba(255, 0, 255, 0.06) 65%, rgba(0, 0, 0, 0.2));
+  box-shadow: 0 0 32px rgba(0, 243, 255, 0.09), inset 0 0 18px rgba(0, 243, 255, 0.04);
+  transform: rotate(45deg);
+}
+
+.empty-core .icon {
+  width: 18px;
+  height: 18px;
+  color: var(--cyan);
+  transform: rotate(-45deg);
+}
+
+.empty-kicker {
+  color: var(--magenta);
+  font-family: var(--mono);
+  font-size: 8px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+}
+
+.empty-state h3 {
+  margin-top: 8px;
+  color: var(--text-strong);
+  font-size: 21px;
+  font-weight: 600;
+  letter-spacing: -0.035em;
+}
+
+.empty-copy {
+  max-width: 440px;
+  margin-top: 7px;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+.recipe-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 7px;
+  width: 100%;
+  max-width: 560px;
+  margin-top: 18px;
+}
+
+.recipe-card {
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr) 12px;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+  padding: 10px 9px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.018);
+  text-align: left;
+  transition: border-color 160ms ease, background 160ms ease, transform 160ms ease, box-shadow 160ms ease;
+}
+
+.recipe-card:nth-child(1) { --recipe-accent: var(--cyan); }
+.recipe-card:nth-child(2) { --recipe-accent: var(--magenta); }
+.recipe-card:nth-child(3) { --recipe-accent: var(--acid); }
+
+.recipe-card:hover {
+  border-color: color-mix(in srgb, var(--recipe-accent) 30%, transparent);
+  background: color-mix(in srgb, var(--recipe-accent) 5%, transparent);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 26px rgba(0, 0, 0, 0.22);
+}
+
+.recipe-index {
+  color: var(--recipe-accent);
+  font-family: var(--mono);
+  font-size: 8px;
+  font-weight: 600;
+}
+
+.recipe-copy {
+  min-width: 0;
+}
+
+.recipe-copy strong {
+  display: block;
+  overflow: hidden;
+  color: var(--text);
+  font-size: 9.5px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.recipe-copy small {
+  display: block;
+  overflow: hidden;
+  margin-top: 2px;
+  color: var(--dim);
+  font-size: 8px;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.recipe-card > .icon {
+  width: 10px;
+  height: 10px;
+  color: var(--dim);
+  transform: rotate(45deg);
+}
+
+.recipe-card:hover > .icon {
+  color: var(--recipe-accent);
+}
+
+.text-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 15px;
+  padding: 2px;
+  border: 0;
+  background: transparent;
+  color: var(--dim);
+  font-family: var(--mono);
+  font-size: 8px;
+  letter-spacing: 0.025em;
+  transition: color 150ms ease;
+}
+
+.text-link span {
+  color: var(--cyan);
+}
+
+.text-link:hover {
+  color: var(--text);
+}
