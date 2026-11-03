@@ -14,7 +14,7 @@ PromptCombo es una aplicación estática y local. No tiene backend, autenticaci�
 
 - Escape HTML de datos y atributos antes de insertarlos en el DOM.
 - Sin `eval`, `Function`, `document.write` ni `innerHTML` con entrada externa.
-- Persistencia local opcional y versionada; solo se guardan IDs de módulos y valores de variables, validados y acotados al cargar.
+- Persistencia local opcional y versionada; se guardan IDs de módulos, valores de variables y la preferencia de guardado, validados y acotados al cargar.
 - Sin peticiones de red en tiempo de ejecución.
 - Servidor con raíz fija, resolución de rutas reales y bloqueo de path traversal y enlaces simbólicos fuera de la raíz.
 - Solo `GET` y `HEAD`; respuestas `405` para el resto.
