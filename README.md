@@ -1,82 +1,138 @@
 # PromptCombo
 
-> Consola offline para componer, ordenar y copiar prompts maestros con roles, agentes, subagentes, flujos, skills y plantillas.
+> Generador guiado y offline de prompts, instrucciones y artefactos para proyectos de IA.
 
 [![CI](https://github.com/manu-alvarez/PromptCombo/actions/workflows/ci.yml/badge.svg)](https://github.com/manu-alvarez/PromptCombo/actions/workflows/ci.yml)
 [![Licencia MIT](https://img.shields.io/badge/licencia-MIT-39ff14.svg)](LICENSE)
 
-PromptCombo es una aplicación web sin framework que convierte un catálogo modular de instrucciones en un prompt maestro determinista. El proyecto mantiene una arquitectura de código fuente separada por responsabilidades y genera un único `dist/index.html` autocontenido para uso offline.
+PromptCombo convierte una necesidad en un paquete editable de archivos: prompts, `AGENTS.md`, reglas de Cursor, contexto para Claude Code, instrucciones de Copilot, paquetes de skills, contratos de agentes, comandos, estructuras de proyecto, documentación de diseño, planes de testing y esquemas JSON.
+
+El compositor de bloques original se conserva como **modo avanzado**. La entrada principal es un flujo guiado que selecciona una receta, pide solo los datos necesarios y genera artefactos revisables.
 
 ![Interfaz de PromptCombo](docs/promptcombo.png)
 
+## Qué puedes crear
+
+| Familia | Recetas |
+|---|---:|
+| Prompts | 2 |
+| Instrucciones de repositorio | 4 |
+| Skills | 1 |
+| Agentes | 1 |
+| Comandos | 1 |
+| Proyectos | 1 |
+| Diseño y frontend | 1 |
+| Validación | 2 |
+| **Total** | **13** |
+
+Cada receta declara objetivo, ejemplo, preguntas, destinos compatibles, entregables y límites. No hay tarjetas vacías ni enlaces que aparenten funciones inexistentes.
+
+## Flujo guiado
+
+1. **Crear**: describe qué necesitas en lenguaje natural.
+2. **Plantillas**: acepta la sugerencia por palabras clave o elige una familia manualmente.
+3. **Proyecto**: completa solo los campos necesarios; los predeterminados están marcados.
+4. **Entregables**: selecciona los destinos y genera los archivos.
+5. **Revisión**: edita, valida y corrige.
+6. **Exportación**: copia, descarga un archivo, un ZIP o el proyecto JSON.
+
+La interpretación es local y transparente: usa términos y categorías, no un modelo generativo. Si no reconoce la petición, muestra opciones en lugar de inventar una intención.
+
+## Recetas incluidas
+
+| Receta | Artefactos principales |
+|---|---|
+| Prompt profesional | `prompts/<proyecto>-<tipo>.md` |
+| Investigación con fuentes | Prompt de investigación y registro de fuentes |
+| `AGENTS.md` | `AGENTS.md` |
+| Reglas de Cursor | `.cursor/rules/project.mdc` |
+| Instrucciones de Copilot | Instrucciones generales, por ruta y prompt file |
+| Contexto para Claude Code | `CLAUDE.md` |
+| Skill con `SKILL.md` | `SKILL.md`, plantilla de salida y checklist |
+| Contrato de agente | Contratos de agente/subagentes y casos de evaluación JSON |
+| Paquete de comandos | Archivos `.prompt.md` independientes |
+| Estructura de proyecto | README, `.env.example`, `.gitignore`, arquitectura, ADR y árbol |
+| Diseño frontend | Brief, IA, pantallas, componentes, tokens, accesibilidad y prompt |
+| Revisión y testing | Plan, checklist, casos y criterios de aceptación |
+| Extracción estructurada | Prompt, JSON Schema, entrada y salida de ejemplo |
+
+## Adaptadores de destino
+
+- Markdown genérico.
+- `AGENTS.md`.
+- Cursor (`.mdc`).
+- Claude Code (`CLAUDE.md`).
+- GitHub Copilot (instrucciones generales, por ruta y prompt file).
+- Agent Skills (`SKILL.md` y recursos).
+- JSON Schema y ejemplos JSON.
+
+Los formatos se generan según lo documentado y se marcan como revisables. La app no declara compatibilidad universal con clientes que no se hayan comprobado.
+
+## Proyecto, archivos y validación
+
+- Árbol de archivos y editor de texto por artefacto.
+- Indicadores de **editado manualmente** y **desactualizado**.
+- Regeneración de un archivo o del paquete con confirmación si hay ediciones.
+- Validación de campos obligatorios, placeholders, rutas, colisiones, JSON y frontmatter.
+- Los errores bloquean la exportación ZIP; los avisos no.
+- La validación es local y estructural: no prueba el comportamiento de un modelo.
+
+## Exportación y guardado
+
+- Copiar un archivo.
+- Descargar un archivo.
+- Descargar un ZIP con la estructura de rutas.
+- Exportar el proyecto editable como JSON.
+- Importar un proyecto exportado, validándolo antes de sustituir el actual.
+- Guardar proyectos en `localStorage` para continuar después.
+- Los ZIP usan UTF-8, rutas relativas seguras y un escritor propio sin dependencias.
+
+## Modo avanzado
+
+La sección **Avanzado** conserva el compositor original:
+
+- Catálogo de 56 módulos: 4 prompts, 7 roles, 3 flujos, 1 agente, 3 subagentes, 30 skills, 5 plantillas y 3 scaffoldings.
+- Las 30 skills mantienen sus ocho campos.
+- Reordenación, variables, recetas, copia y descarga del prompt maestro.
+- Persistencia independiente de la composición.
+
 ## Alcance y límites
 
-PromptCombo es un **compositor determinista de prompts**. No es un runtime de agentes ni una capa de ejecución.
+PromptCombo genera archivos; **no los ejecuta**.
 
-- Genera un documento de instrucciones; no llama a modelos ni ejecuta herramientas.
-- No aplica permisos, credenciales, aislamiento ni aprobaciones.
-- No conecta servidores MCP ni mantiene sesiones de modelo.
-- Los módulos `agent` y `subagent` son contratos textuales; no crean procesos.
-- Las 30 skills son procedimientos textuales; no son paquetes Agent Skills ejecutables.
-- El prompt compilado incluye límites de ejecución y autorización, pero su cumplimiento depende del runtime y de la revisión humana.
+- No llama a modelos, no instala dependencias y no aplica permisos.
+- Generar un `AGENTS.md` no ejecuta un agente.
+- Generar un `SKILL.md` no instala una skill.
+- Generar una configuración no concede acceso.
+- Validar un JSON no evalúa el comportamiento de un modelo.
+- Los contratos y prompts son especificaciones textuales; su cumplimiento depende del runtime.
 
-La aplicación verifica su propio código, sus datos y su build; no puede verificar el comportamiento de un modelo externo. Consulta [Contratos y límites](docs/CONTRACTS.md) y la [decisión de alcance](docs/adr/0001-prompt-composer-boundary.md).
-
-## Qué incluye
-
-| Grupo | Módulos |
-|---|---:|
-| Prompts de inicio | 4 |
-| Roles / asistentes | 7 |
-| Flujos por fases | 3 |
-| Agentes | 1 |
-| Subagentes | 3 |
-| Skills con procedimiento completo | 30 |
-| Plantillas de archivos | 5 |
-| Scaffoldings | 3 |
-| **Total** | **56** |
-
-Cada skill documenta ocho campos: propósito, cuándo usarla, entradas, procedimiento, restricciones, salida, criterios de aceptación y ejemplo. Su contenido es textual y no instala dependencias ni habilita herramientas.
-
-## Funcionalidad
-
-- Catálogo con acordeones, búsqueda normalizada y fichas de detalle.
-- Constructor ordenable con Drag & Drop y controles accesibles de subida/bajada.
-- Variables dinámicas con sustitución determinista en el prompt compilado.
-- Contrato global de ejecución: límites de herramientas, autorización de acciones sensibles, datos no confiables y evidencia verificable.
-- Recetas de sesión: **PWA desde cero**, **Auditoría exprés** y **Blueprint de producto**.
-- Prevención de duplicados, eliminación con deshacer y reinicio reversible.
-- Copia con Clipboard API y fallback para contextos restringidos.
-- Descarga del prompt maestro como Markdown.
-- Persistencia local opcional de la composición con `localStorage`; el botón de guardado permite desactivarla y borrar los datos.
-- Estado en memoria cuando el navegador bloquea el almacenamiento: la aplicación sigue funcionando sin persistir.
-- Sin cookies, telemetría ni peticiones de red.
-- Accesibilidad: HTML semántico, skip link, foco visible, diálogo modal nativo, atajos `/` y `Escape`, `aria-live`, `prefers-reduced-motion` y `forced-colors`.
+Consulta [Contratos y límites](docs/CONTRACTS.md) y la [decisión de alcance](docs/adr/0001-prompt-composer-boundary.md).
 
 ## Arquitectura
 
 ```text
 Datos (src/data)
-      │
-      ▼
-Core (src/core)  ── estado, índice, compilador, formato, DOM
-      │
-      ▼
-UI (src/ui)      ── catálogo, workbench, detalle, sesión, toasts, eventos
-      │
-      ▼
-Entrada (src/main.js)
-      │
-      ▼
-Build (esbuild)  ── CSS + JS inline ──► dist/index.html
+  ├── catálogo de 56 módulos
+  └── recetas del generador
+        │
+        ▼
+Core (src/core)
+  ├── generador determinista de artefactos
+  ├── modelo y validación de proyecto
+  ├── persistencia, ZIP, intención y utilidades
+  └── compilador del modo avanzado
+        │
+        ▼
+UI (src/ui)
+  ├── studio guiado
+  └── compositor avanzado
+        │
+        ▼
+Build (esbuild) ──► dist/index.html
 ```
 
-- **Datos**: módulos inmutables y catálogo canónico.
-- **Core**: lógica independiente de la presentación; el compilador es una función pura.
-- **UI**: renderizado derivado del estado y eventos de usuario.
-- **Build**: única dependencia de desarrollo (`esbuild`); el artefacto final no tiene dependencias ni red.
-
-La dirección de dependencias es `ui → core → data`. Los módulos de datos no conocen el DOM y el compilador no conoce la interfaz. El HTML V1.0 original se conserva sin mantenimiento en `legacy/index-v1.0.html`.
+La dirección de dependencias es `ui → core → data`. Los datos no conocen el DOM. La generación es determinista: la misma receta, valores y destinos producen el mismo contenido y las mismas rutas.
 
 ## Estructura del proyecto
 
@@ -85,29 +141,24 @@ PromptCombo/
 ├── AGENTS.md                   # Instrucciones para agentes del repositorio
 ├── src/
 │   ├── index.html              # Shell de desarrollo
-│   ├── main.js                 # Punto de entrada
-│   ├── core/                   # Estado, DOM, formato, catálogo, compilador y persistencia
-│   ├── data/                   # 56 módulos y recetas
-│   │   └── skills/             # 30 skills en seis lotes
-│   ├── styles/                 # 12 secciones CSS + índice
-│   └── ui/                     # Catálogo, workbench, detalle, sesión, toasts, eventos
-├── scripts/
-│   ├── build.mjs               # Build determinista a un único HTML
-│   ├── serve.mjs               # Servidor HTTP sin dependencias
-│   ├── service.mjs             # Servicio launchd para macOS
-│   └── validate-data.mjs       # Contrato de datos y compilación completa
-├── test/                       # node:test (datos, compilador, persistencia y servidor)
+│   ├── main.js                 # Entrada y arranque
+│   ├── core/                   # Generador, proyecto, persistencia, ZIP, compilador
+│   ├── data/                   # Catálogo, skills y recetas del generador
+│   ├── styles/                 # Tokens, compositor y studio
+│   └── ui/                     # Studio guiado y compositor avanzado
+├── scripts/                    # Build, servidor, validación y servicio launchd
+├── test/                       # Datos, generador, proyecto, ZIP, persistencia y servidor
 ├── docs/                       # Arquitectura, contratos, ADR, despliegue y captura
 ├── legacy/                     # Entregable original V1.0 conservado
 ├── dist/index.html             # Entregable offline generado y versionado
-└── .github/workflows/ci.yml    # Validación, tests y build en CI
+└── .github/workflows/ci.yml    # Validación, tests y build
 ```
 
 ## Requisitos
 
-- Node.js **20 o superior** (recomendado 22; ver `.nvmrc`).
-- npm 10 o superior.
-- macOS solo para el servicio `launchd`; el resto funciona en cualquier sistema.
+- Node.js 20+ (recomendado 22; ver `.nvmrc`).
+- npm 10+.
+- macOS solo para el servicio `launchd`.
 
 ## Inicio rápido
 
@@ -119,39 +170,26 @@ npm start
 
 Abre <http://127.0.0.1:8282/>.
 
-También puedes abrir directamente `dist/index.html` en el navegador. El archivo funciona sin servidor y sin conexión; la copia usa el fallback del portapapeles cuando la API no está disponible.
+También puedes abrir `dist/index.html` directamente. Es un archivo offline; el almacenamiento local puede variar según el navegador y el origen.
 
-## Desarrollo
-
-```bash
-npm run dev
-```
-
-Sirve `src/` con módulos ES nativos en <http://127.0.0.1:8282/>. Los cambios requieren recargar la pestaña.
-
-## Build
+## Desarrollo y verificación
 
 ```bash
-npm run build
+npm run dev      # desarrollo en 127.0.0.1:8282
+npm run validate # catálogo y recetas
+npm test         # pruebas automatizadas
+npm run check    # validate + test + build
 ```
 
-Genera `dist/index.html` con CSS y JavaScript inline, sin recursos externos. El build valida que no queden referencias a los archivos fuente ni secuencias de cierre de `<script>` inseguras.
+Antes de entregar un cambio de UI, comprueba teclado, foco, responsive, consola, generación, edición, regeneración, ZIP, JSON y persistencia.
 
-## Verificación
-
-```bash
-npm run validate   # 56 módulos, IDs, campos, recetas y compilación completa
-npm test           # datos, compilador y servidor
-npm run check      # validate + test + build
-```
-
-## Despliegue local persistente en macOS
+## Despliegue local persistente
 
 ```bash
 npm run deploy:local
 ```
 
-Instala un agente de usuario `com.promptcombo.server` mediante `launchd`. Arranca con el login, se reinicia si falla y sirve `dist/index.html` en `127.0.0.1:8282`.
+Instala el agente `com.promptcombo.server` con `launchd`. Escucha solo en `127.0.0.1:8282`; no hay exposición remota ni Tailscale configurado.
 
 ```bash
 npm run service:status
@@ -160,27 +198,26 @@ npm run service:logs
 npm run service:uninstall
 ```
 
-El plist se guarda en `~/Library/LaunchAgents/com.promptcombo.server.plist` y los logs en `~/Library/Logs/PromptCombo/`.
-
-El servicio escucha únicamente en `127.0.0.1:8282`. No hay exposición remota ni por la red local; para acceder desde otro dispositivo sería necesario configurar explícitamente un proxy o una red privada.
+Consulta [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
 
 ## Seguridad y privacidad
 
-- Sin backend, sin telemetría, sin analítica y sin peticiones de red en ejecución.
-- La composición se guarda opcionalmente en `localStorage` del origen; no sale del navegador.
-- Estado en memoria cuando el almacenamiento local no está disponible; la aplicación no se bloquea.
-- Renderizado con escape explícito de datos y atributos.
-- Servidor estático con protección de path traversal, cabeceras defensivas y métodos limitados a `GET`/`HEAD`.
-- Sin credenciales ni secretos en el repositorio.
-- Sin exposición remota: el servidor solo acepta conexiones en loopback.
+- Sin backend, telemetría, cuentas ni peticiones de red en ejecución.
+- Las entradas, importaciones y plantillas se tratan como contenido no confiable.
+- No se usa `eval` ni se ejecuta el contenido generado.
+- Las rutas de exportación se validan contra traversal, duplicados y colisiones.
+- Los JSON se validan antes de importar.
+- La persistencia es local; exporta el proyecto para respaldarlo.
+- Generar archivos no concede permisos ni certifica su funcionamiento.
 
-Para reportar una vulnerabilidad, sigue [SECURITY.md](SECURITY.md).
+Para vulnerabilidades, sigue [SECURITY.md](SECURITY.md).
 
 ## Documentación
 
 - [Instrucciones para agentes](AGENTS.md)
 - [Arquitectura](docs/ARCHITECTURE.md)
 - [Contratos y límites](docs/CONTRACTS.md)
+- [Auditoría del catálogo](docs/CATALOG-AUDIT.md)
 - [ADR: compositor, no runtime](docs/adr/0001-prompt-composer-boundary.md)
 - [Despliegue](docs/DEPLOYMENT.md)
 - [Contribución](CONTRIBUTING.md)
@@ -188,12 +225,13 @@ Para reportar una vulnerabilidad, sigue [SECURITY.md](SECURITY.md).
 
 ## Limitaciones
 
-- La composición y las variables se guardan en `localStorage` por defecto. El botón de guardado de la barra superior desactiva la persistencia y elimina la copia local.
-- Si el navegador bloquea el almacenamiento (modo privado, políticas, algunos contextos `file://`), la sesión queda solo en memoria y se avisa en la interfaz.
-- La persistencia es por origen y navegador: abrir `dist/index.html` desde otra ruta o navegador no comparte la sesión.
-- Varias pestañas comparten la misma clave local. La preferencia de guardado se sincroniza, pero la composición no: la última pestaña que guarde sobrescribe la anterior.
-- La copia automática depende de la política del navegador. El fallback selecciona el texto para copia manual si ambos mecanismos fallan.
-- No se registra service worker ni manifest: la aplicación es offline como archivo único, pero no se declara instalable como PWA.
+- La interpretación de necesidades es orientativa y se basa en palabras clave.
+- No hay integración con modelos ni proveedores externos.
+- La compatibilidad de formatos se limita a lo implementado y documentado.
+- No se evalúa el comportamiento de modelos externos.
+- Los proyectos se guardan por origen y navegador; no hay sincronización remota.
+- Varias pestañas comparten la misma clave local: la última que guarde sobrescribe.
+- Los archivos generados requieren revisión antes de usarse en un proyecto real.
 
 ## Licencia
 

@@ -30,9 +30,10 @@ propios controles.
 PromptCombo **es**:
 
 - Un catálogo modular de instrucciones y procedimientos.
+- Un generador guiado de archivos y especificaciones a partir de 13 recetas.
 - Un compilador determinista de texto.
-- Una interfaz offline para ordenar bloques, sustituir variables y copiar o
-  descargar el resultado.
+- Una interfaz offline para crear proyectos, ordenar bloques, sustituir
+  variables, validar artefactos y exportarlos.
 - Una aplicación con persistencia local opcional y sin red en ejecución.
 
 PromptCombo **no es**:
@@ -59,6 +60,26 @@ PromptCombo **no es**:
 
 Las 30 skills conservan ocho campos y no habilitan herramientas por sí mismas.
 Los módulos `agent` y `subagent` no crean contexto, memoria ni permisos.
+
+El generador puede producir un paquete `SKILL.md` a partir de una receta; ese
+paquete es distinto de los módulos `skill` del catálogo avanzado. Generarlo no
+instala la skill ni la registra en un cliente.
+
+### Artefactos generados
+
+El generador crea archivos de texto a partir de las recetas:
+
+- 13 recetas y 8 familias de entregables.
+- Prompts, `AGENTS.md`, reglas `.mdc`, `CLAUDE.md`, instrucciones de Copilot,
+  paquetes `SKILL.md`, contratos de agentes, comandos, estructuras de proyecto,
+  documentación de diseño, planes de testing y esquemas JSON.
+- Los destinos se limitan a los formatos implementados; no se promete
+  compatibilidad universal con clientes externos.
+- La validación comprueba campos obligatorios, placeholders, rutas, duplicados,
+  JSON y frontmatter. No prueba el comportamiento de un modelo.
+- Los archivos se pueden editar, regenerar, copiar y descargar; el ZIP conserva
+  la estructura de rutas.
+- Exportar o importar un proyecto no ejecuta su contenido.
 
 ## 5. Contrato del prompt compilado
 
@@ -102,6 +123,15 @@ Antes de ejecutar un prompt generado:
 
 La aprobación de un usuario no demuestra que tenga autorización. El runtime debe
 comprobar permiso y aprobación por separado.
+
+### Exportación e importación
+
+- Las rutas del ZIP son relativas, no absolutas y no admiten segmentos `..`.
+- Los nombres duplicados o con colisión de mayúsculas se detectan antes de exportar.
+- Los proyectos JSON se validan al importar; un archivo inválido no sustituye el
+  proyecto actual.
+- El tamaño de importación está limitado a 2 MB.
+- El contenido exportado se descarga, no se ejecuta.
 
 ## 7. MCP y herramientas
 
@@ -163,5 +193,6 @@ Pruebas manuales recomendadas tras un cambio de UI:
 
 - `AGENTS.md`: instrucciones para agentes que modifican el repositorio.
 - `docs/ARCHITECTURE.md`: capas, compilador, build y servidor.
+- `docs/CATALOG-AUDIT.md`: auditoría del catálogo existente.
 - `docs/adr/0001-prompt-composer-boundary.md`: decisión de alcance.
 - `SECURITY.md`: superficie de amenaza y riesgos residuales.

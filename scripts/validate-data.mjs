@@ -8,6 +8,11 @@ import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { ALL_ITEMS, GROUPS, ITEM_MAP, TOTAL_ITEMS, TYPE_META } from '../src/data/catalog.js';
 import { RECIPES } from '../src/data/recipes.js';
+import {
+  FAMILIES as STUDIO_FAMILIES,
+  RECIPES as STUDIO_RECIPES,
+  TARGETS as STUDIO_TARGETS
+} from '../src/data/studio-recipes.js';
 import { compilePrompt } from '../src/core/compiler.js';
 import { getActiveVariables } from '../src/core/items.js';
 
@@ -156,9 +161,24 @@ export function validateData() {
     assert.ok(!allOutput.includes(token), `El prompt global conserva el token ${token}.`);
   }
 
+  assert.equal(STUDIO_RECIPES.length, 13, 'El generador debe declarar 13 recetas.');
+  assert.equal(STUDIO_FAMILIES.length, 8, 'El generador debe declarar 8 familias.');
+  assert.equal(new Set(STUDIO_RECIPES.map((recipe) => recipe.id)).size, STUDIO_RECIPES.length, 'Hay recetas duplicadas.');
+
+  for (const recipe of STUDIO_RECIPES) {
+    assert.ok(STUDIO_FAMILIES.some((family) => family.id === recipe.family), `Familia desconocida en ${recipe.id}.`);
+    assert.ok(recipe.questions.length > 0, `La receta ${recipe.id} no tiene preguntas.`);
+    assert.equal(new Set(recipe.questions.map((question) => question.id)).size, recipe.questions.length, `Preguntas duplicadas en ${recipe.id}.`);
+    assert.ok(recipe.targets.length > 0, `La receta ${recipe.id} no tiene destinos.`);
+    for (const target of recipe.targets) assert.ok(STUDIO_TARGETS[target], `Destino desconocido en ${recipe.id}: ${target}.`);
+    for (const target of recipe.defaultTargets) assert.ok(recipe.targets.includes(target), `Destino predeterminado incompatible en ${recipe.id}.`);
+  }
+
   return {
     modules: TOTAL_ITEMS,
     skills: skills.length,
+    studioRecipes: STUDIO_RECIPES.length,
+    studioFamilies: STUDIO_FAMILIES.length,
     groups: GROUPS.map((group) => `${group.key}:${group.items.length}`).join(' · '),
     characters: allOutput.length
   };
@@ -168,9 +188,9 @@ const isMain = process.argv[1] && pathToFileURL(path.resolve(process.argv[1])).h
 if (isMain) {
   try {
     const summary = validateData();
-    console.log(`Datos válidos · ${summary.modules} módulos · ${summary.skills} skills`);
+    console.log(`Datos válidos · ${summary.modules} módulos · ${summary.skills} skills · ${summary.studioRecipes} recetas`);
     console.log(summary.groups);
-    console.log(`Compilado completo: ${summary.characters.toLocaleString('es-ES')} caracteres`);
+    console.log(`Familias del generador: ${summary.studioFamilies} · compilado completo: ${summary.characters.toLocaleString('es-ES')} caracteres`);
   } catch (error) {
     console.error(`Validación fallida: ${error.message}`);
     process.exitCode = 1;

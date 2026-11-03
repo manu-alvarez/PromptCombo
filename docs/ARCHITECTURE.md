@@ -2,12 +2,12 @@
 
 ## 1. Objetivo
 
-PromptCombo permite seleccionar módulos de instrucción, ordenarlos y compilarlos en un prompt maestro verificable. El sistema debe ser:
+PromptCombo permite crear proyectos guiados a partir de una necesidad, generar paquetes de artefactos editables y conservar el compositor de bloques como modo avanzado. El sistema debe ser:
 
 - **Offline**: el artefacto de distribución no depende de red ni de recursos externos.
-- **Determinista**: la misma secuencia y las mismas variables producen exactamente el mismo texto.
-- **Auditable**: los datos, el compilador y la interfaz están separados.
-- **Mantenible**: el catálogo puede crecer sin modificar la lógica de presentación.
+- **Determinista**: la misma receta, valores y destinos producen exactamente el mismo contenido y las mismas rutas.
+- **Auditable**: datos, generador, compilador y interfaz están separados.
+- **Mantenible**: el catálogo y las recetas pueden crecer sin modificar la lógica de presentación.
 - **Accesible**: operación completa por teclado, foco visible y semántica HTML.
 
 El código fuente es modular; el entregable se compila a un único `dist/index.html`.
@@ -43,6 +43,7 @@ Consulta `docs/CONTRACTS.md` y `docs/adr/0001-prompt-composer-boundary.md`.
 - `src/data/catalog.js` importa los ocho grupos, deriva `GROUPS`, `ALL_ITEMS`, `ITEM_MAP` y `TOTAL_ITEMS`, y define `TYPE_META`.
 - Las 30 skills viven en seis lotes de cinco (`src/data/skills/`).
 - Las recetas y el estado vacío del preview viven en `src/data/recipes.js`.
+- Las 13 recetas y 8 familias del generador viven en `src/data/studio-recipes.js`.
 - Los datos son objetos inmutables por convención. Añadir un módulo requiere una entrada con ID único, código y los campos de su tipo.
 
 ### Core
@@ -51,10 +52,17 @@ Consulta `docs/CONTRACTS.md` y `docs/adr/0001-prompt-composer-boundary.md`.
 |---|---|
 | `core/dom.js` | Referencias obligatorias al DOM; falla pronto si falta un nodo |
 | `core/state.js` | Estado en memoria: selección, variables, búsqueda y acordeones |
-| `core/format.js` | Escape HTML, normalización, iconos, secuencias y conteos |
+| `core/format.js` | Escape HTML, normalización, iconos, secuencias, slugs y conteos |
 | `core/items.js` | Variables activas, tokens conocidos, índice de búsqueda y descripciones |
 | `core/compiler.js` | Compilación pura de módulos a prompt maestro |
-| `core/persistence.js` | Serialización, validación, cuota, preferencia y guardado diferido en `localStorage` |
+| `core/persistence.js` | Persistencia de la composición avanzada |
+| `core/generator.js` | Generación determinista de artefactos y adaptadores de destino |
+| `core/project.js` | Modelo de proyecto, rutas seguras, validación e import/export |
+| `core/project-store.js` | Persistencia versionada de proyectos y guardados |
+| `core/zip.js` | ZIP determinista sin compresión, con CRC32 |
+| `core/studio-intent.js` | Interpretación local de necesidades por palabras clave |
+| `core/clipboard.js` | Copia con Clipboard API y fallback |
+| `core/download.js` | Descargas locales de texto, JSON y blobs |
 
 ### UI
 
@@ -66,6 +74,7 @@ Consulta `docs/CONTRACTS.md` y `docs/adr/0001-prompt-composer-boundary.md`.
 | `ui/session.js` | Recetas, reinicio de sesión y deshacer |
 | `ui/toasts.js` | Notificaciones efímeras con acciones |
 | `ui/events.js` | Conexión de eventos, teclado y Drag & Drop |
+| `ui/studio.js` | Creación guiada, proyecto, archivos, validación, guardados y exportación |
 
 ## 3. Modelo de estado
 
@@ -93,6 +102,31 @@ mutación
 `updateOutput()` programa un guardado diferido (300 ms) cuando la sesión ya está inicializada, con `selected` y `vars`. `core/persistence.js` valida el payload, limita tamaños, usa la clave versionada `promptcombo.session.v1` y tolera cuota llena, JSON corrupto o almacenamiento bloqueado. La preferencia se guarda en `promptcombo.prefs.v1`; al desactivarla se borra la sesión local.
 
 El render se deriva siempre del estado; no se guarda HTML como fuente de verdad.
+
+### Estado del generador
+
+El studio mantiene un proyecto independiente de la composición:
+
+```js
+project = {
+  schemaVersion, id, title, description, locale,
+  recipeId, targets, values, defaultedFields,
+  artifacts: [{ path, format, content, editedByUser, stale, pendingVariables }],
+  createdAt, updatedAt
+}
+```
+
+Flujo determinista:
+
+```text
+necesidad -> receta -> valores -> buildArtifacts() -> validación -> edición -> exportación
+```
+
+- `core/studio-intent.js` sugiere recetas por palabras clave; no es un modelo.
+- `core/generator.js` aplica plantillas y adaptadores de destino.
+- `core/project.js` valida rutas, JSON, frontmatter, placeholders, colisiones y tamaño.
+- `core/project-store.js` guarda el proyecto actual y los guardados en `promptcombo.studio.v1`.
+- `core/zip.js` construye un ZIP determinista sin compresión.
 
 ## 4. Compilador determinista
 
@@ -128,7 +162,7 @@ Todos los módulos tienen `id`, `code`, `short`, `title` y `tagline`. Los campos
 | `template` | `filename`, `language`, `usage`, `text` |
 | `scaffold` | `usage`, `tree`, `rules` |
 
-La validación comprueba cantidades exactas, IDs y códigos únicos, tokens de variables, referencias de recetas y compilación de los 56 módulos.
+La validación comprueba cantidades exactas, IDs y códigos únicos, tokens de variables, referencias de recetas y compilación de los 56 módulos. También valida las 13 recetas del generador, sus familias y destinos.
 
 ## 5. Pipeline de build
 

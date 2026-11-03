@@ -19,6 +19,7 @@ import {
 import { bindDetailDialog, closeDetail, getCurrentDetailId, openDetail } from './detail.js';
 import { loadRecipe, resetSession } from './session.js';
 import { showToast } from './toasts.js';
+import { showStudioView } from './studio.js';
 import {
   flushSessionSave,
   initPersistence,
@@ -99,7 +100,10 @@ export function bindEvents() {
     }
   });
 
-  els.loadDemoBtn.addEventListener('click', () => loadRecipe('pwa'));
+  els.loadDemoBtn.addEventListener('click', () => {
+    showStudioView('advanced');
+    loadRecipe('pwa');
+  });
 
   els.persistBtn.addEventListener('click', () => {
     const next = !isPersistenceEnabled();

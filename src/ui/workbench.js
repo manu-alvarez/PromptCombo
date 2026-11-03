@@ -7,6 +7,8 @@ import { escapeHTML, formatCount, icon, padSequence } from '../core/format.js';
 import { getActiveVariables, getComboDescription } from '../core/items.js';
 import { compilePrompt } from '../core/compiler.js';
 import { scheduleSessionSave } from '../core/persistence.js';
+import { copyText } from '../core/clipboard.js';
+import { downloadText } from '../core/download.js';
 import { syncCatalogAddState } from './catalog.js';
 import { syncDetailAddState } from './detail.js';
 import { showToast } from './toasts.js';
@@ -299,42 +301,7 @@ export function clearVariables() {
 }
 
 async function copyToClipboard(text) {
-  if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
-    try {
-      await navigator.clipboard.writeText(text);
-      return true;
-    } catch (error) {
-      // Fallback controlado para contextos de archivo o permisos restringidos.
-    }
-  }
-
-  const activeElement = document.activeElement;
-  const area = document.createElement('textarea');
-  area.value = text;
-  area.setAttribute('readonly', '');
-  area.setAttribute('aria-hidden', 'true');
-  area.style.position = 'fixed';
-  area.style.top = '-1000px';
-  area.style.left = '-1000px';
-  area.style.opacity = '0';
-  document.body.append(area);
-  area.focus();
-  area.select();
-
-  let copied = false;
-  try {
-    copied = document.execCommand('copy');
-  } catch (error) {
-    copied = false;
-  }
-
-  area.remove();
-
-  if (activeElement && typeof activeElement.focus === 'function' && activeElement.isConnected) {
-    activeElement.focus({ preventScroll: true });
-  }
-
-  return copied;
+  return copyText(text);
 }
 
 function setCopiedFeedback() {
@@ -382,14 +349,6 @@ export async function handleCopy() {
 export function handleDownload() {
   if (!currentOutput) return;
 
-  const blob = new Blob([`${currentOutput}\n`], { type: 'text/markdown;charset=utf-8' });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = 'promptcombo-maestro.md';
-  document.body.append(link);
-  link.click();
-  link.remove();
-  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+  downloadText(`${currentOutput}\n`, 'promptcombo-maestro.md', 'text/markdown;charset=utf-8');
   showToast('Prompt descargado como Markdown', { tone: 'success', duration: 2000 });
 }

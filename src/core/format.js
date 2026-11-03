@@ -19,6 +19,15 @@ export function normalizeSearch(value) {
     .trim();
 }
 
+export function slugify(value, fallback = 'proyecto') {
+  const slug = normalizeSearch(value)
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 60);
+
+  return slug || fallback;
+}
+
 export function icon(name, extraClass = '') {
   return `<svg class="icon ${extraClass}" aria-hidden="true"><use href="#i-${name}"></use></svg>`;
 }

@@ -6,13 +6,13 @@
   <meta name="color-scheme" content="dark">
   <meta name="theme-color" content="#0a0a0f">
   <meta name="application-name" content="PromptCombo">
-  <meta name="description" content="PromptCombo: consola offline para componer, ordenar y copiar prompts maestros con roles, agentes, flujos y skills.">
+  <meta name="description" content="PromptCombo: generador offline de prompts, instrucciones y artefactos para proyectos de IA.">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230a0a0f'/%3E%3Cpath d='M16 4 27 10.5v11L16 28 5 21.5v-11L16 4Z' fill='none' stroke='%2300f3ff' stroke-width='1.5'/%3E%3Cpath d='m12 12 4-2.3 4 2.3v4.6L16 19l-4-2.4V12Z' fill='%23ff00ff'/%3E%3C/svg%3E">
-  <title>PromptCombo · Orquestación de prompts</title>
+  <title>PromptCombo · Generador de prompts y artefactos</title>
   <link rel="stylesheet" href="./styles/index.css">
 </head>
 <body>
-  <a class="skip-link" href="#sequenceArea">Saltar al constructor</a>
+  <a class="skip-link" href="#appMain">Saltar al contenido</a>
 
   <svg class="svg-sprite" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
     <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
@@ -48,7 +48,7 @@
       </div>
       <div class="brand-copy">
         <h1>PROMPT<span>COMBO</span></h1>
-        <p>ORCHESTRATION SYSTEM <span class="brand-version">/ V2.2</span></p>
+        <p>ORCHESTRATION SYSTEM <span class="brand-version">/ V2.3</span></p>
       </div>
     </div>
 
@@ -74,11 +74,234 @@
     </div>
   </header>
 
+  <nav class="mode-nav" aria-label="Secciones de PromptCombo">
+    <button class="mode-tab is-active" type="button" data-view="create">Crear</button>
+    <button class="mode-tab" type="button" data-view="templates">Plantillas</button>
+    <button class="mode-tab" type="button" data-view="project">Proyecto</button>
+    <button class="mode-tab" type="button" data-view="saved">Guardados</button>
+    <button class="mode-tab" type="button" data-view="advanced">Avanzado</button>
+  </nav>
+
   <noscript>
-    <div class="noscript-banner">PromptCombo necesita JavaScript para compilar la secuencia. Activa JavaScript y vuelve a abrir el archivo.</div>
+    <div class="noscript-banner">PromptCombo necesita JavaScript para generar los archivos. Activa JavaScript y vuelve a abrir el archivo.</div>
   </noscript>
 
-  <main class="workspace">
+  <main id="appMain" tabindex="-1">
+  <section class="studio" id="studio" tabindex="-1" aria-label="Generador guiado">
+    <section class="studio-view" data-studio-panel="create">
+      <div class="studio-hero">
+        <p class="eyebrow"><span class="eyebrow-index">START</span> GENERADOR GUIADO</p>
+        <h2>¿Qué quieres crear?</h2>
+        <p class="studio-lead">Describe el resultado que necesitas. PromptCombo seleccionará una plantilla, pedirá los datos necesarios y generará archivos editables.</p>
+
+        <label class="studio-label" for="studioGoal">Necesidad</label>
+        <textarea class="studio-goal" id="studioGoal" rows="4" maxlength="2000" placeholder="Ej. Necesito un AGENTS.md para un proyecto Python con pruebas y lint."></textarea>
+        <div class="studio-examples" id="studioExamples" aria-label="Ejemplos de necesidad"></div>
+
+        <div class="studio-hero-actions">
+          <button class="ui-button primary" type="button" id="analyzeGoalBtn">
+            <svg class="icon" aria-hidden="true"><use href="#i-spark"></use></svg>
+            <span>Ver opciones</span>
+          </button>
+          <button class="text-button" type="button" data-view="templates">Empezar desde una plantilla</button>
+          <button class="text-button" type="button" data-view="advanced">Abrir compositor avanzado</button>
+        </div>
+
+        <div class="studio-suggestion" id="goalSuggestion" hidden></div>
+      </div>
+
+      <section class="studio-section" aria-labelledby="familyTitle">
+        <div class="studio-section-head">
+          <div>
+            <p class="eyebrow eyebrow-small">FAMILIAS</p>
+            <h3 id="familyTitle">¿Qué tipo de entregable necesitas?</h3>
+          </div>
+          <p class="studio-muted">Elige una familia si la descripción no encaja.</p>
+        </div>
+        <div class="family-grid" id="familyGrid"></div>
+      </section>
+
+      <p class="studio-note">La sugerencia se basa en palabras clave y plantillas locales. No es un modelo generativo y no envía datos a ningún servicio.</p>
+    </section>
+
+    <section class="studio-view" data-studio-panel="templates" hidden>
+      <div class="studio-heading">
+        <div>
+          <p class="eyebrow"><span class="eyebrow-index">LIB</span> PLANTILLAS</p>
+          <h2>Recetas listas para usar</h2>
+          <p class="studio-lead">Cada receta declara sus preguntas, entregables y límites. Puedes personalizarla antes de generar.</p>
+        </div>
+      </div>
+
+      <div class="template-controls">
+        <div class="search-field studio-search">
+          <svg class="icon search-icon" aria-hidden="true"><use href="#i-search"></use></svg>
+          <input id="templateSearch" type="search" placeholder="Buscar AGENTS.md, skill, dashboard…" autocomplete="off" spellcheck="false" maxlength="120" aria-label="Buscar plantillas">
+          <button class="search-clear" type="button" id="templateSearchClear" aria-label="Limpiar búsqueda" hidden>
+            <svg class="icon" aria-hidden="true"><use href="#i-close"></use></svg>
+          </button>
+        </div>
+        <div class="chip-row" id="templateFilters" aria-label="Filtrar por familia"></div>
+      </div>
+
+      <div class="template-grid" id="templateGrid"></div>
+      <div class="studio-empty" id="templateEmpty" hidden>
+        <p>No hay plantillas que coincidan con el filtro.</p>
+        <button class="text-button" type="button" id="templateResetBtn">Limpiar filtros</button>
+      </div>
+    </section>
+
+    <section class="studio-view" data-studio-panel="project" hidden>
+      <div class="studio-empty studio-empty-large" id="projectEmpty">
+        <p class="eyebrow eyebrow-small">PROYECTO</p>
+        <h2>Todavía no hay un proyecto abierto</h2>
+        <p>Crea uno desde una necesidad o elige una plantilla. Tus respuestas se conservarán al cambiar de sección.</p>
+        <button class="ui-button primary" type="button" data-view="create">Empezar a crear</button>
+      </div>
+
+      <div id="projectWorkspace" hidden>
+        <header class="project-head">
+          <div class="project-heading">
+            <p class="eyebrow"><span class="eyebrow-index">PRJ</span> <span id="projectFamily">PROYECTO</span></p>
+            <h2 class="sr-only" id="projectHeading">Proyecto actual</h2>
+            <label class="sr-only" for="projectTitle">Título del proyecto</label>
+            <input class="project-title" id="projectTitle" type="text" maxlength="160" autocomplete="off">
+            <p class="project-recipe" id="projectRecipe"></p>
+          </div>
+          <div class="project-head-actions">
+            <label class="sr-only" for="recipeSelect">Cambiar plantilla</label>
+            <select class="studio-select" id="recipeSelect"></select>
+            <button class="ui-button ghost" type="button" id="newProjectBtn">Nuevo</button>
+            <button class="ui-button primary" type="button" id="saveProjectBtn">
+              <svg class="icon" aria-hidden="true"><use href="#i-save"></use></svg>
+              <span>Guardar</span>
+            </button>
+          </div>
+        </header>
+
+        <div class="project-progress" id="projectProgress" aria-label="Progreso del proyecto"></div>
+
+        <div class="project-layout">
+          <div class="project-form">
+            <section class="studio-card" aria-labelledby="needTitle">
+              <div class="studio-card-head">
+                <div>
+                  <p class="eyebrow eyebrow-small">01 · NECESIDAD</p>
+                  <h3 id="needTitle">Datos del proyecto</h3>
+                </div>
+                <span class="studio-muted" id="projectMissing"></span>
+              </div>
+              <p class="studio-help">Los campos marcados como <strong>Predeterminado</strong> se rellenaron desde la plantilla. Edítalos si no describen tu caso.</p>
+              <div class="question-grid" id="projectQuestions"></div>
+            </section>
+
+            <section class="studio-card" aria-labelledby="targetsTitle">
+              <div class="studio-card-head">
+                <div>
+                  <p class="eyebrow eyebrow-small">02 · ENTREGABLES</p>
+                  <h3 id="targetsTitle">Destinos y archivos</h3>
+                </div>
+              </div>
+              <p class="studio-help">Elige solo los formatos que necesitas. La generación usa plantillas locales; no instala ni ejecuta nada.</p>
+              <div class="target-grid" id="projectTargets"></div>
+              <div class="project-generate-row">
+                <button class="ui-button primary" type="button" id="generateBtn">
+                  <svg class="icon" aria-hidden="true"><use href="#i-spark"></use></svg>
+                  <span>Generar artefactos</span>
+                </button>
+                <button class="text-button" type="button" id="regenerateAllBtn">Regenerar todo</button>
+              </div>
+            </section>
+
+            <section class="studio-card" aria-labelledby="validationTitle">
+              <div class="studio-card-head">
+                <div>
+                  <p class="eyebrow eyebrow-small">03 · REVISIÓN</p>
+                  <h3 id="validationTitle">Validación local</h3>
+                </div>
+                <span class="validation-count" id="validationSummary">Sin generar</span>
+              </div>
+              <ul class="validation-list" id="validationList" aria-live="polite"></ul>
+              <p class="studio-help">Validamos estructura, rutas, JSON, frontmatter y placeholders. No probamos el comportamiento de un modelo.</p>
+            </section>
+
+            <section class="studio-card" aria-labelledby="exportTitle">
+              <div class="studio-card-head">
+                <div>
+                  <p class="eyebrow eyebrow-small">04 · EXPORTAR</p>
+                  <h3 id="exportTitle">Salida</h3>
+                </div>
+              </div>
+              <div class="export-actions">
+                <button class="ui-button primary" type="button" id="downloadZipBtn" disabled>
+                  <svg class="icon" aria-hidden="true"><use href="#i-download"></use></svg>
+                  <span>Descargar paquete ZIP</span>
+                </button>
+                <button class="ui-button ghost" type="button" id="exportProjectBtn" disabled>
+                  <svg class="icon" aria-hidden="true"><use href="#i-save"></use></svg>
+                  <span>Exportar proyecto</span>
+                </button>
+              </div>
+              <p class="studio-help">El ZIP conserva la estructura de rutas. El JSON permite volver a importar el proyecto completo.</p>
+            </section>
+          </div>
+
+          <div class="project-files">
+            <section class="studio-card artifact-card" aria-labelledby="artifactsTitle">
+              <div class="studio-card-head">
+                <div>
+                  <p class="eyebrow eyebrow-small">ARCHIVOS</p>
+                  <h3 id="artifactsTitle">Paquete actual <span class="mini-count" id="artifactCount">0</span></h3>
+                </div>
+              </div>
+              <div class="artifact-workspace">
+                <ul class="artifact-list" id="artifactList" aria-label="Archivos del proyecto"></ul>
+                <div class="artifact-detail">
+                  <div class="studio-empty" id="artifactEmpty">
+                    <p>Genera los artefactos para revisar y personalizar los archivos.</p>
+                  </div>
+                  <div id="artifactPane" hidden>
+                    <div class="artifact-path" id="artifactPath"></div>
+                    <div class="artifact-badges" id="artifactBadges"></div>
+                    <label class="sr-only" for="artifactEditor">Contenido del archivo</label>
+                    <textarea class="artifact-editor" id="artifactEditor" spellcheck="false"></textarea>
+                    <div class="artifact-actions">
+                      <button class="ui-button ghost" type="button" id="copyArtifactBtn">Copiar archivo</button>
+                      <button class="ui-button ghost" type="button" id="downloadArtifactBtn">Descargar archivo</button>
+                      <button class="text-button" type="button" id="regenerateArtifactBtn">Regenerar archivo</button>
+                      <button class="text-button" type="button" id="restoreArtifactBtn">Restaurar generado</button>
+                    </div>
+                    <p class="artifact-validation" id="artifactValidation"></p>
+                  </div>
+                </div>
+              </div>
+            </section>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="studio-view" data-studio-panel="saved" hidden>
+      <div class="studio-heading">
+        <div>
+          <p class="eyebrow"><span class="eyebrow-index">LOCAL</span> GUARDADOS</p>
+          <h2>Proyectos en este navegador</h2>
+          <p class="studio-lead">Los proyectos se guardan en <code>localStorage</code>. Exporta el JSON si quieres respaldarlos o moverlos a otro equipo.</p>
+        </div>
+        <div class="saved-actions">
+          <button class="ui-button ghost" type="button" id="importProjectBtn">Importar proyecto</button>
+          <input id="importProjectInput" type="file" accept="application/json,.json" hidden>
+        </div>
+      </div>
+      <div class="saved-grid" id="savedProjects"></div>
+      <div class="studio-empty" id="savedEmpty" hidden>
+        <p>No hay proyectos guardados todavía.</p>
+        <button class="text-button" type="button" data-view="create">Crear el primero</button>
+      </div>
+    </section>
+  </section>
+
+  <div class="workspace" hidden>
     <section class="panel panel-catalog" aria-labelledby="catalogTitle">
       <div class="panel-head">
         <div class="heading-group">
@@ -244,6 +467,7 @@
         </p>
       </div>
     </aside>
+  </div>
   </main>
   <div class="toast-region" id="toastRegion" role="status" aria-live="polite" aria-atomic="false"></div>
 

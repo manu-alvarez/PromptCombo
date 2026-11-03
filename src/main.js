@@ -13,6 +13,7 @@ import {
 import { renderCatalog } from './ui/catalog.js';
 import { renderAll } from './ui/workbench.js';
 import { bindEvents } from './ui/events.js';
+import { initStudio } from './ui/studio.js';
 import { showToast } from './ui/toasts.js';
 
 function restorePersistedSession() {
@@ -45,6 +46,7 @@ function init() {
 
   renderCatalog();
   renderAll();
+  initStudio();
   bindEvents();
   armSessionSave();
 
