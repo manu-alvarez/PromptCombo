@@ -58,7 +58,7 @@ PromptCombo **no es**:
 | `template` | Contenido de archivo de referencia | Un archivo instalado |
 | `scaffold` | Estructura de proyecto propuesta | Un generador que crea archivos |
 
-Las 30 skills conservan ocho campos y no habilitan herramientas por sí mismas.
+Las 67 skills del catálogo avanzado conservan ocho campos y no habilitan herramientas por sí mismas; 30 son originales y 37 se derivan de la biblioteca.
 Los módulos `agent` y `subagent` no crean contexto, memoria ni permisos.
 
 El generador puede producir un paquete `SKILL.md` a partir de una receta; ese

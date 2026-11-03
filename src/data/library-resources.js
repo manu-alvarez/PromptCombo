@@ -71,12 +71,12 @@ function skill(data) {
     content: {
       purpose: data.purpose,
       when: data.when,
-      inputs: data.inputs || [],
-      procedure: data.procedure,
-      restrictions: data.restrictions || [],
+      inputs: data.inputs || ['Contexto y criterios de la tarea'],
+      procedure: data.procedure || ['Inspeccionar el contexto', 'Aplicar el procedimiento', 'Declarar evidencia y límites'],
+      restrictions: data.restrictions || ['No inventes datos ni evidencias.', 'Declara las limitaciones.'],
       output: data.output,
-      acceptance: data.acceptance || [],
-      example: data.example
+      acceptance: data.acceptance || ['La salida responde al objetivo.', 'Los límites están declarados.'],
+      example: data.example || 'Ejemplo pendiente de concretar con datos verificables.'
     },
     outputs: [data.output]
   });
@@ -95,12 +95,12 @@ function role(data) {
     ...data,
     content: {
       mission: data.mission,
-      responsibilities: data.responsibilities,
+      responsibilities: data.responsibilities || [],
       decisions: data.decisions || [],
-      inputs: data.inputs || [],
-      evidence: data.evidence || [],
-      boundaries: data.boundaries || [],
-      output: data.output,
+      inputs: data.inputs || ['Contexto y criterios'],
+      evidence: data.evidence || ['Evidencia verificable'],
+      boundaries: data.boundaries || ['No inventes datos ni permisos.'],
+      output: data.output || 'Resultado verificable',
       relatedSkills: data.relatedSkills || []
     }
   });

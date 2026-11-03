@@ -84,7 +84,7 @@ test('todos los módulos compilan sin artefactos de serialización', () => {
   }
 
   const allOutput = compilePrompt(ALL_ITEMS, values);
-  assert.equal(ALL_ITEMS.length, 56);
+  assert.equal(ALL_ITEMS.length, 108);
   for (const item of ALL_ITEMS) {
     assert.ok(allOutput.includes(item.title.toUpperCase()), `Falta ${item.id}`);
   }

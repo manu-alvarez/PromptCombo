@@ -66,8 +66,9 @@ como artefacto reproducible.
 
 ## 5. Contrato del catálogo
 
-- El catálogo validado contiene 56 módulos: 4 prompts, 7 roles, 3 flujos,
-  1 agente, 3 subagentes, 30 skills, 5 plantillas y 3 scaffoldings.
+- El catálogo validado contiene 108 módulos: 4 prompts, 22 roles, 3 flujos,
+  1 agente, 3 subagentes, 67 skills, 5 plantillas y 3 scaffoldings
+  (56 originales + 52 recursos composables de biblioteca).
 - El generador declara 21 recetas y 8 familias en `src/data/studio-recipes.js`.
 - La biblioteca declara 221 recursos en `src/data/library-resources.js`.
 - Cada skill conserva sus ocho campos: propósito, cuándo usarla, entradas,

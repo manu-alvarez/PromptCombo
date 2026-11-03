@@ -118,8 +118,8 @@ Los formatos se generan según lo documentado y se marcan como revisables. La ap
 
 La sección **Avanzado** conserva el compositor original:
 
-- Catálogo de 56 módulos: 4 prompts, 7 roles, 3 flujos, 1 agente, 3 subagentes, 30 skills, 5 plantillas y 3 scaffoldings.
-- Las 30 skills mantienen sus ocho campos.
+- Catálogo de 108 módulos: 4 prompts, 22 roles, 3 flujos, 1 agente, 3 subagentes, 67 skills, 5 plantillas y 3 scaffoldings (56 originales + 52 recursos composables de biblioteca).
+- Las 67 skills mantienen sus ocho campos; 30 son originales y 37 se derivan de la biblioteca.
 - Reordenación, variables, recetas, copia y descarga del prompt maestro.
 - Persistencia independiente de la composición.
 
@@ -140,7 +140,7 @@ Consulta [Contratos y límites](docs/CONTRACTS.md) y la [decisión de alcance](d
 
 ```text
 Datos (src/data)
-  ├── catálogo de 56 módulos
+  ├── catálogo de 108 módulos
   └── recetas del generador
         │
         ▼

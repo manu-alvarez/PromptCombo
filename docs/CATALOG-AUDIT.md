@@ -2,9 +2,12 @@
 
 ## Alcance
 
-Se auditaron los 56 módulos y las 30 skills del catálogo original antes de
+Se auditaron los 56 módulos y las 30 skills originales antes de
 introducir el generador guiado. La validación automática comprueba cantidades,
 IDs, códigos, campos, tokens y compilación.
+
+El catálogo avanzado contiene ahora 108 módulos: los 56 originales más 52
+recursos composables derivados de la biblioteca (15 roles y 37 skills).
 
 ## Mapa de uso
 
@@ -27,8 +30,8 @@ paquete nuevo. Hay solapamiento conceptual en prompts, skills y estructuras:
 
 - El prompt profesional del generador sustituye al prompt maestro como entrada
   guiada, pero no elimina los 4 prompts existentes.
-- El paquete `SKILL.md` del generador no es uno de los 30 módulos `skill`; es un
-  artefacto de formato Agent Skills.
+- El paquete `SKILL.md` del generador no es uno de los 67 módulos `skill` del
+  avanzado; es un artefacto de formato Agent Skills.
 - La estructura de proyecto del generador no reutiliza literalmente los 3
   scaffoldings; produce documentación y configuración verificable.
 
@@ -45,6 +48,6 @@ paquete nuevo. Hay solapamiento conceptual en prompts, skills y estructuras:
 
 ## Decisión
 
-Conservar el catálogo y añadir el generador como una capa de producto separada.
+Conservar el catálogo original y añadir 52 recursos composables y el generador como capas de producto separadas.
 Cualquier cambio futuro de campos o cantidades debe actualizar
 `scripts/validate-data.mjs`, los tests, las recetas y la documentación.

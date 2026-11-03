@@ -33,7 +33,7 @@ Cada recurso declara:
 | Paquetes | 15 |
 | **Total** | **221** |
 
-Los 56 módulos del compositor avanzado se mantienen y se reutilizan como recursos derivados cuando aportan valor. Las recetas nuevas no duplican módulos del compositor: las referencias se resuelven en la capa de biblioteca.
+Los 56 módulos originales del compositor se mantienen; el avanzado incorpora 52 recursos composables derivados de la biblioteca (22 roles y 67 skills en total). Las recetas nuevas no duplican módulos del compositor: las referencias se resuelven en la capa de biblioteca.
 
 ## Descubrimiento
 

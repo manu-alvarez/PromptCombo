@@ -25,11 +25,11 @@ import { getActiveVariables } from '../src/core/items.js';
 
 const EXPECTED = {
   prompts: 4,
-  roles: 7,
+  roles: 22,
   flows: 3,
   agents: 1,
   subagents: 3,
-  skills: 30,
+  skills: 67,
   templates: 5,
   scaffolds: 3
 };
@@ -65,7 +65,7 @@ function assertNonEmptyArray(value, label) {
 }
 
 export function validateData() {
-  assert.equal(TOTAL_ITEMS, 56, 'El catálogo debe contener 56 módulos.');
+  assert.equal(TOTAL_ITEMS, 108, 'El catálogo debe contener 108 módulos (56 base + 52 de biblioteca).');
   assert.equal(new Set(ALL_ITEMS.map((item) => item.id)).size, ALL_ITEMS.length, 'Hay IDs duplicados.');
   assert.equal(new Set(ALL_ITEMS.map((item) => item.code)).size, ALL_ITEMS.length, 'Hay códigos duplicados.');
 
@@ -119,7 +119,7 @@ export function validateData() {
 
   const skillFields = ['purpose', 'when', 'inputs', 'procedure', 'restrictions', 'output', 'acceptance', 'example'];
   const skills = GROUPS.find((group) => group.key === 'skills').items;
-  assert.equal(skills.length, 30, 'Deben existir exactamente 30 skills.');
+  assert.equal(skills.length, 67, 'El catálogo avanzado debe contener 67 skills.');
   for (const skill of skills) {
     for (const field of skillFields) {
       assert.ok(Object.hasOwn(skill, field), `La skill ${skill.id} no tiene ${field}.`);

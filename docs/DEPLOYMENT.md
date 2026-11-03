@@ -34,7 +34,7 @@ npm ci
 npm run check
 ```
 
-`npm run check` valida los 56 módulos, ejecuta los tests y regenera `dist/index.html`.
+`npm run check` valida los 108 módulos, ejecuta los tests y regenera `dist/index.html`.
 
 ## 3. Servicio local persistente
 

@@ -41,7 +41,7 @@ Consulta `docs/CONTRACTS.md` y `docs/adr/0001-prompt-composer-boundary.md`.
 ### Datos
 
 - `src/data/catalog.js` importa los ocho grupos, deriva `GROUPS`, `ALL_ITEMS`, `ITEM_MAP` y `TOTAL_ITEMS`, y define `TYPE_META`.
-- Las 30 skills viven en seis lotes de cinco (`src/data/skills/`).
+- Las 30 skills originales viven en seis lotes de cinco (`src/data/skills/`); 37 recursos composables se derivan de la biblioteca.
 - Las recetas y el estado vacío del preview viven en `src/data/recipes.js`.
 - Las 21 recetas y 8 familias del generador viven en `src/data/studio-recipes.js`.
 - La biblioteca de 221 recursos vive en `src/data/library-resources.js` y `src/data/command-defs.js`.
@@ -163,7 +163,7 @@ Todos los módulos tienen `id`, `code`, `short`, `title` y `tagline`. Los campos
 | `template` | `filename`, `language`, `usage`, `text` |
 | `scaffold` | `usage`, `tree`, `rules` |
 
-La validación comprueba cantidades exactas, IDs y códigos únicos, tokens de variables, referencias de recetas y compilación de los 56 módulos. También valida las 21 recetas, sus familias, destinos y los 221 recursos de la biblioteca.
+La validación comprueba cantidades exactas, IDs y códigos únicos, tokens de variables, referencias de recetas y compilación de los 108 módulos del catálogo avanzado. También valida las 21 recetas, sus familias, destinos y los 221 recursos de la biblioteca.
 
 ## 5. Pipeline de build
 
