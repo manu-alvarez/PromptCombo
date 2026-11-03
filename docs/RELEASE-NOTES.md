@@ -1,153 +1,95 @@
-# Notas de versión · PromptCombo 2.4.0
+# Notas de versión · PromptCombo 2.4.1
 
-Fecha de cierre: 2026-11-03.
+Fecha: 2026-11-04.
 
-## Alcance
+## Objetivo
 
-PromptCombo 2.4.0 cierra el generador guiado, el compositor avanzado, la
-biblioteca curada y la publicación estática en GitHub Pages. La aplicación
-sigue siendo un único `dist/index.html` offline, sin llamadas a modelos, sin
-runtime de agentes, sin MCP activo, sin cuentas y sin sincronización remota.
+Corregir la cohesión del modo de composición manual después del cierre 2.4.0.
+No se amplía el catálogo, no se añaden paquetes, no se implementa runtime de
+agentes, MCP, modelos, cuentas, sincronización ni marketplace.
 
-## Cambios principales
+## Cambios
 
-- Biblioteca de 221 recursos con ID, versión, tipo, categoría, estado
-  editorial, procedencia, relaciones y verificación separada.
-- 21 recetas y 15 paquetes curados.
-- Catálogo avanzado de 108 módulos: 56 originales y 52 recursos composables
-  derivados de la biblioteca.
-- Referencias de recursos en `library/` y `docs/library-index.md`.
-- Detección de conflictos entre pestañas para proyectos y composición avanzada.
-- Validación parcial de JSON Schema y comprobación estructural de OpenAPI.
-- Publicación en <https://manu-alvarez.github.io/PromptCombo/>.
+- La sección **Avanzado** pasa a llamarse **Composición**.
+- Se presenta como un modo manual del mismo producto, con una cabecera que
+  explica su relación con el generador, la biblioteca y las plantillas.
+- La cabecera enlaza con **Crear**, **Plantillas guiadas · 21** y
+  **Biblioteca · 221**.
+- El estado global muestra los bloques de la composición y deja de mezclar los
+  archivos del proyecto abierto.
+- El catálogo muestra el estado editorial de los 52 bloques derivados de la
+  biblioteca: `stable` o `experimental`.
+- La ficha de un módulo derivado indica procedencia y estado.
+- El panel del prompt maestro declara que es texto revisable, no ejecutable.
+- Los ejemplos del compositor se identifican como composiciones manuales, no
+  como las 21 plantillas guiadas.
+- Se corrigen y amplían las pruebas de compilación de los módulos derivados.
 
-## Correcciones de cierre
+## Decisión sobre la sección
 
-- Los 172 recursos nuevos quedan en estado `experimental`; solo los 49
-  derivados del catálogo original conservan `stable`.
-- Añadir un recurso no altera el prompt maestro ni la composición avanzada:
-  solo añade documentación de referencia.
-- El cambio de plantilla avisa expresamente cuando hay archivos editados.
-- La importación y la apertura de proyectos guardan antes el proyecto actual.
-- Los conflictos entre pestañas pausan el guardado y ofrecen conservar o
-  exportar la copia local.
-- Un estado local corrupto se conserva en
-  `promptcombo.studio.v1.backup` antes de continuar con un estado vacío.
-- La extracción estructurada incluye una salida inválida explícita y documenta
-  el subconjunto de esquema soportado.
-- OpenAPI se genera a partir de las operaciones declaradas, con parámetros de
-  ruta, respuestas, esquemas y ejemplos revisables.
+Se mantiene el compositor manual porque cubre una capacidad distinta de la
+generación guiada: ordenar roles, skills y flujos en un único prompt maestro.
+Además, incluye flujos, agentes y subagentes que no forman parte de la
+biblioteca de recursos. Eliminarlo habría supuesto retirar funcionalidad válida
+y dejar esos tipos sin interfaz.
 
-## Formatos y límites
+La corrección no consiste en disimular la diferencia, sino en declararla:
+**Crear** y **Plantillas** producen paquetes de proyecto; **Composición**
+produce un prompt maestro manual. Comparten catálogo, biblioteca, límites y
+lenguaje visual, pero no el mismo resultado.
 
-### JSON Schema
+## Verificación
 
-Subconjunto soportado: `type` (`string`, `number`, `integer`, `boolean`,
-`array`, `object`), `properties`, `required`, `additionalProperties: false`,
-`items` y `enum`.
+- `npm test`: 49/49.
+- `npm run check`: correcto.
+- Compilación de los 108 bloques y de los 52 módulos derivados.
+- Sin errores de consola en el modo de composición.
+- Estado global y metadatos coherentes con la composición.
+- Responsive sin desbordamiento en 320, 390, 768 y 1440 px.
+- Lighthouse: 100 en accesibilidad, buenas prácticas y SEO.
 
-La aplicación comprueba:
+## Límites
 
-1. Que el archivo JSON parsea.
-2. Que el esquema usa una estructura soportada.
-3. Que la salida de ejemplo cumple el esquema.
-4. Que el ejemplo marcado como inválido no lo cumple.
-
-No ejecuta un validador completo de JSON Schema ni evalúa el comportamiento de
-un modelo.
-
-### OpenAPI
-
-Se comprueba que el YAML tiene `openapi: 3.x`, `info.title`, `info.version`,
-`paths`, indentación básica, referencias internas existentes y parámetros de
-ruta declarados. También se contrastan las operaciones introducidas por el
-usuario con el YAML generado.
-
-No se ejecuta una validación semántica completa. El archivo es un **borrador
-revisable**.
-
-### Frontmatter, rutas y colisiones
-
-Se validan rutas relativas, traversal, rutas absolutas, archivos ocultos,
-duplicados y colisiones por mayúsculas. El frontmatter de archivos `.mdc` y
-`SKILL.md` comprueba delimitadores, `name` y `description` cuando aplica.
-
-## Protección de datos
-
-- El proyecto actual se guarda en `promptcombo.studio.v1`.
-- La composición avanzada se guarda en `promptcombo.session.v1`.
-- Los proyectos guardados se limitan a 50; la composición a 200 bloques y 120
-  variables.
-- Un cambio externo en otra pestaña no se sobrescribe sin decisión explícita.
-- Una lectura corrupta conserva una copia de respaldo antes de descartar el
-  estado.
-
-## Respaldo e importación
-
-- Exportación de proyecto: JSON con `schemaVersion: 1`.
-- Exportación de paquete: ZIP.
-- Exportación de composición avanzada: `promptcombo-composicion.json`.
-- Importación JSON: máximo 2 MB; se validan esquema, receta, valores,
-  artefactos, rutas y recursos.
-- No hay sincronización remota ni cuentas.
-
-## Recuperación de errores
-
-- Error de escritura: aviso visible y el proyecto permanece en memoria.
-- Conflicto entre pestañas: aviso persistente, guardado pausado y acciones para
-  conservar o exportar.
-- Proyecto corrupto: aviso y copia de respaldo.
-- Archivo editado: se puede regenerar con confirmación o restaurar desde la
-  plantilla.
-- Importación inválida: se rechaza con mensaje y no sustituye el proyecto
-  actual.
-
-## Problemas conocidos
-
-- Cursor, GitHub Copilot, Claude Code y Agent Skills no se han probado en
-  clientes reales. Su compatibilidad figura como `not_tested`.
-- No se evalúa el comportamiento de modelos externos.
-- La validación de JSON Schema es parcial.
-- La validación de OpenAPI es estructural, no semántica.
-- La extracción ZIP se ha probado en macOS; no en Windows ni en otras
-  herramientas.
-- La interfaz se ha comprobado en Chromium y en viewports responsive; no hay
-  prueba táctil real ni prueba en todos los navegadores.
-- No hay pruebas de interfaz automatizadas; los recorridos se verifican en
-  navegador.
-- La resolución de conflictos no es colaboración en tiempo real.
+- La composición manual sigue siendo local y textual.
+- No crea un proyecto, no genera ZIP, no instala recursos y no ejecuta el
+  prompt.
+- La compatibilidad con clientes externos y el comportamiento de modelos siguen
+  como `not_tested`.
+- Los 172 recursos nuevos de la biblioteca siguen en `experimental`.
 
 ## Compatibilidad
 
 Probado:
 
-- Chromium con la aplicación local y con GitHub Pages.
-- Contexto seguro HTTPS en Pages.
+- Chromium/Electron con la aplicación local y GitHub Pages.
 - Generación, validación, ZIP, JSON y persistencia en navegador.
-- Extracción ZIP con `unzip` en macOS.
+- Extracción ZIP con `unzip`, `zipfile` de Python y `ditto` en macOS.
 
 No probado:
 
-- Carga de paquetes en Cursor, Copilot, Claude Code o Agent Skills.
-- Comportamiento de modelos.
+- Carga de paquetes en Cursor, GitHub Copilot, Claude Code o Agent Skills.
+- Comportamiento de modelos externos.
 - Validación completa de JSON Schema.
-- Ejecución ZIP en Windows.
-- Descargas y portapapeles fuera de Chromium.
-- Uso táctil real en dispositivos móviles.
+- Extracción ZIP en Windows.
+- Navegadores distintos de Chromium y uso táctil real.
+
+## Problemas conocidos
+
+- La compatibilidad con clientes externos sigue como `not_tested`.
+- La validación de JSON Schema es parcial y la de OpenAPI es estructural.
+- No hay pruebas de interfaz automatizadas.
+- Los conflictos entre pestañas se resuelven manualmente.
+- Los 172 recursos nuevos de la biblioteca siguen en `experimental`.
 
 ## Distribución
 
-- Versión visible: `V2.4`.
-- `package.json`: `2.4.0`.
+- Versión visible: `V2.4.1`.
+- `package.json`: `2.4.1`.
 - Artefacto: `dist/index.html`, generado con `npm run build`.
-- Tamaño: 444.624 bytes.
-- SHA-256: `aa3c20cd0b66a6e7f9d32afac427e7de437876d677266cc43ae1f239b618f28c`.
-- Publicación: GitHub Pages desde `.github/workflows/pages.yml`.
-- Tag local preparado: `v2.4.0`. No se publica sin autorización.
+- Tamaño: 448.980 bytes.
+- SHA-256: `954af90118bce9c815c9ac5f63345afd916f208f1357a3679ae1f05da51742df`.
+- Publicación: GitHub Pages desde `.github/workflows/pages.yml`; cada push a `main` publica `dist/`.
 
-## Criterio de cierre
+## Historial
 
-Se cierra si no hay pérdida silenciosa de datos conocida, los seis recorridos
-principales están comprobados, las etiquetas editoriales reflejan la revisión
-real, los formatos tienen límites precisos y la documentación coincide con el
-producto.
+- [Notas de versión 2.4.0](RELEASE-NOTES-2.4.0.md)

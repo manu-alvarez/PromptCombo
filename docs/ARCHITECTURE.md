@@ -2,7 +2,7 @@
 
 ## 1. Objetivo
 
-PromptCombo permite crear proyectos guiados a partir de una necesidad, generar paquetes de artefactos editables y conservar el compositor de bloques como modo avanzado. El sistema debe ser:
+PromptCombo permite crear proyectos guiados a partir de una necesidad, generar paquetes de artefactos editables y componer manualmente un prompt maestro a partir de bloques. El sistema debe ser:
 
 - **Offline**: el artefacto de distribución no depende de red ni de recursos externos.
 - **Determinista**: la misma receta, valores y destinos producen exactamente el mismo contenido y las mismas rutas.
@@ -34,6 +34,20 @@ PromptCombo compila instrucciones textuales; no ejecuta modelos ni herramientas.
 - Los tipos `agent`, `subagent` y `skill` son contratos y procedimientos textuales.
 - El prompt compilado incluye límites de ejecución y autorización; su cumplimiento depende del runtime externo.
 
+### Modos de producto
+
+PromptCombo tiene dos formas de trabajo dentro de la misma aplicación:
+
+- **Generador guiado** (`Crear`, `Plantillas`, `Proyecto`, `Guardados`):
+  produce un paquete de archivos a partir de una receta y unos valores.
+- **Composición manual** (`Composición`): produce un único prompt maestro
+  ordenando bloques del catálogo.
+
+Ambos modos comparten el catálogo, la biblioteca, los límites de ejecución y el
+lenguaje visual. La composición manual no crea proyectos ni genera ZIP; el
+generador guiado no ordena bloques manualmente. `Biblioteca` es transversal y
+alimenta ambos modos.
+
 Consulta `docs/CONTRACTS.md` y `docs/adr/0001-prompt-composer-boundary.md`.
 
 `AGENTS.md` orienta a agentes que modifican el repositorio; no se sirve en `dist/index.html` ni forma parte del prompt generado.
@@ -41,11 +55,11 @@ Consulta `docs/CONTRACTS.md` y `docs/adr/0001-prompt-composer-boundary.md`.
 ### Datos
 
 - `src/data/catalog.js` importa los ocho grupos, deriva `GROUPS`, `ALL_ITEMS`, `ITEM_MAP` y `TOTAL_ITEMS`, y define `TYPE_META`.
-- Las 30 skills originales viven en seis lotes de cinco (`src/data/skills/`); 37 recursos composables se derivan de la biblioteca.
+- Las 30 skills base viven en seis lotes de cinco (`src/data/skills/`); 37 recursos composables se derivan de la biblioteca.
 - Las recetas y el estado vacío del preview viven en `src/data/recipes.js`.
 - Las 21 recetas y 8 familias del generador viven en `src/data/studio-recipes.js`.
 - La biblioteca de 221 recursos vive en `src/data/library-resources.js` y `src/data/command-defs.js`.
-- `src/data/library-modules.js` adapta 37 skills y 15 roles de la biblioteca al formato del catálogo avanzado sin duplicar contenido.
+- `src/data/library-modules.js` adapta 37 skills y 15 roles de la biblioteca al formato del catálogo de composición sin duplicar contenido.
 - Los datos son objetos inmutables por convención. Añadir un módulo requiere una entrada con ID único, código y los campos de su tipo.
 
 ### Core
@@ -165,7 +179,7 @@ Todos los módulos tienen `id`, `code`, `short`, `title` y `tagline`. Los campos
 | `template` | `filename`, `language`, `usage`, `text` |
 | `scaffold` | `usage`, `tree`, `rules` |
 
-La validación comprueba cantidades exactas, IDs y códigos únicos, tokens de variables, referencias de recetas y compilación de los 108 módulos del catálogo avanzado. También valida las 21 recetas, sus familias, destinos y los 221 recursos de la biblioteca.
+La validación comprueba cantidades exactas, IDs y códigos únicos, tokens de variables, referencias de recetas y compilación de los 108 módulos del catálogo de composición. También valida las 21 recetas, sus familias, destinos y los 221 recursos de la biblioteca.
 
 La validación de formatos separa parseo JSON, estructura de esquema, instancias de ejemplo y comprobación estructural de OpenAPI. Los límites y problemas conocidos se documentan en `docs/RELEASE-NOTES.md`.
 

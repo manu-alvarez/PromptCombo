@@ -48,12 +48,12 @@
       </div>
       <div class="brand-copy">
         <h1>PROMPT<span>COMBO</span></h1>
-        <p>ORCHESTRATION SYSTEM <span class="brand-version">/ V2.4</span></p>
+        <p>ORCHESTRATION SYSTEM <span class="brand-version">/ V2.4.1</span></p>
       </div>
     </div>
 
     <div class="topbar-status" aria-label="Estado de la aplicación">
-      <span class="status-chip"><span class="status-led" aria-hidden="true"></span> COMPOSER LOCAL</span>
+      <span class="status-chip"><span class="status-led" aria-hidden="true"></span> PROMPTCOMBO LOCAL</span>
       <span class="status-rule" aria-hidden="true"></span>
       <span class="status-meta" id="sessionMeta">0 bloques</span>
       <span class="status-rule" aria-hidden="true"></span>
@@ -61,9 +61,9 @@
     </div>
 
     <div class="topbar-actions">
-      <button class="ui-button ghost" type="button" id="loadDemoBtn" title="Cargar una composición de ejemplo">
+      <button class="ui-button ghost" type="button" id="loadDemoBtn" title="Cargar una composición manual de ejemplo">
         <svg class="icon" aria-hidden="true"><use href="#i-spark"></use></svg>
-        <span>Cargar demo</span>
+        <span>Cargar ejemplo</span>
       </button>
       <button class="icon-button" type="button" id="persistBtn" aria-pressed="true" title="Guardado automático activado" aria-label="Guardado automático activado. Pulsa para desactivar.">
         <svg class="icon" aria-hidden="true"><use href="#i-save"></use></svg>
@@ -80,7 +80,7 @@
     <button class="mode-tab" type="button" data-view="library">Biblioteca</button>
     <button class="mode-tab" type="button" data-view="project">Proyecto</button>
     <button class="mode-tab" type="button" data-view="saved">Guardados</button>
-    <button class="mode-tab" type="button" data-view="advanced">Avanzado</button>
+    <button class="mode-tab" type="button" data-view="advanced">Composición</button>
   </nav>
 
   <div class="studio-conflict" id="studioConflict" role="alert" hidden>
@@ -128,7 +128,7 @@
             <span>Ver opciones</span>
           </button>
           <button class="text-button" type="button" data-view="templates">Empezar desde una plantilla</button>
-          <button class="text-button" type="button" data-view="advanced">Abrir compositor avanzado</button>
+          <button class="text-button" type="button" data-view="advanced">Abrir composición manual</button>
         </div>
 
         <div class="studio-suggestion" id="goalSuggestion" hidden></div>
@@ -395,6 +395,20 @@
   </section>
 
   <div class="workspace" hidden>
+    <section class="advanced-mode-bar" aria-labelledby="advancedTitle">
+      <div class="advanced-mode-copy">
+        <p class="eyebrow"><span class="eyebrow-index">ADV</span> MODO AVANZADO · COMPOSICIÓN MANUAL</p>
+        <h2 id="advancedTitle">Construye el prompt maestro bloque a bloque</h2>
+        <p class="advanced-mode-lead">Es una vía manual del mismo producto: comparte los 108 bloques composables y los límites del generador guiado. No crea un proyecto, no instala recursos y no ejecuta el prompt.</p>
+        <p class="advanced-mode-meta" id="advancedMeta">108 bloques composables · 52 derivados de la biblioteca · 221 recursos documentados</p>
+      </div>
+      <div class="advanced-mode-actions">
+        <button class="ui-button ghost" type="button" data-view="create">Volver a Crear</button>
+        <button class="ui-button ghost" type="button" data-view="templates">Plantillas guiadas · 21</button>
+        <button class="ui-button primary" type="button" data-view="library">Biblioteca · 221</button>
+      </div>
+    </section>
+
     <section class="panel panel-catalog" aria-labelledby="catalogTitle">
       <div class="panel-head">
         <div class="heading-group">
@@ -431,6 +445,7 @@
       <footer class="catalog-footer">
         <span class="catalog-footer-plus" aria-hidden="true">+</span>
         <span id="catalogFooterMeta">108 módulos indexados · sesión local</span>
+        <button class="text-button" type="button" data-view="templates">Plantillas · 21</button>
         <button class="text-button" type="button" data-view="library">Biblioteca · 221</button>
       </footer>
     </section>
@@ -474,8 +489,9 @@
           <p class="empty-kicker">READY TO COMPOSE</p>
           <h3>Diseña tu prompt maestro</h3>
           <p class="empty-copy">Combina responsabilidades, procedimientos y fases. El motor los compila en una instrucción ordenada y verificable.</p>
+          <p class="empty-note">Estas composiciones son ejemplos del modo manual; no son las 21 plantillas guiadas. <button class="text-link" type="button" data-view="templates">Ver plantillas guiadas</button></p>
 
-          <div class="recipe-grid" aria-label="Composiciones de ejemplo">
+          <div class="recipe-grid" aria-label="Composiciones manuales de ejemplo">
             <button class="recipe-card" type="button" data-recipe="pwa">
               <span class="recipe-index">01</span>
               <span class="recipe-copy">
@@ -558,6 +574,9 @@
         <p class="local-note">
           <svg class="icon icon-sm" aria-hidden="true"><use href="#i-lock"></use></svg>
           Todo se procesa en local. Nada sale de este navegador.
+        </p>
+        <p class="local-note preview-limits">
+          Prompt textual: no concede herramientas, permisos ni acceso. No se ejecuta ni se instala.
         </p>
       </div>
     </aside>

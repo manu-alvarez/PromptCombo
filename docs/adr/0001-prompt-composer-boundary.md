@@ -11,16 +11,18 @@ skills, agentes, herramientas, permisos, orquestación y ejecución. Un archivo 
 instrucciones no crea herramientas, no impone aislamiento y no garantiza que un
 modelo respete una política.
 
-PromptCombo nació como un catálogo de módulos textuales que se ordenan y se
-compilan en un prompt maestro. Sin una frontera explícita, sus módulos `agent`,
-`subagent` y `skill` podrían interpretarse erróneamente como agentes
-ejecutables, paquetes de habilidades con permisos o procesos aislados.
+PromptCombo combina un generador guiado de proyectos y un modo de composición
+manual que ordena bloques y compila un prompt maestro. Sin una frontera
+explícita, sus módulos `agent`, `subagent` y `skill` podrían interpretarse
+erróneamente como agentes ejecutables, paquetes de habilidades con permisos o
+procesos aislados.
 
 ## Decisión
 
-PromptCombo se mantiene como un **compositor determinista de prompts**:
+PromptCombo no implementa un **runtime de agentes**. Genera texto de forma
+determinista en sus dos modos:
 
-1. Genera texto; no llama a modelos ni ejecuta herramientas.
+1. No llama a modelos ni ejecuta herramientas.
 2. No aplica permisos, credenciales, aislamiento ni aprobaciones.
 3. No implementa MCP, sesiones de modelo, checkpoints ni trazas de ejecución.
 4. Los módulos `agent`, `subagent` y `skill` son contratos y procedimientos
@@ -35,7 +37,7 @@ no como definición del producto.
 
 ## Consecuencias
 
-- La aplicación conserva su simplicidad, su naturaleza offline y su build
+- La aplicación mantiene su simplicidad, su naturaleza offline y su build
   reproducible.
 - La documentación debe evitar afirmaciones de seguridad que dependan solo de
   texto.

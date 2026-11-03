@@ -15,7 +15,7 @@ propios controles.
 |---|---|---|
 | Instrucciones del repositorio | Cómo trabajar en este proyecto | `AGENTS.md` |
 | Prompt de tarea | Composición que crea el usuario | `src/data`, UI, compilador |
-| Skills | Procedimientos textuales reutilizables | 30 módulos del catálogo |
+| Skills | Procedimientos textuales reutilizables | 67 bloques del catálogo de composición |
 | Herramientas | No implementadas | Fuera del alcance |
 | Permisos | No aplicados | Fuera del alcance |
 | Orquestación | Orden y contrato textual de bloques | Compilador y datos |
@@ -58,11 +58,11 @@ PromptCombo **no es**:
 | `template` | Contenido de archivo de referencia | Un archivo instalado |
 | `scaffold` | Estructura de proyecto propuesta | Un generador que crea archivos |
 
-Las 67 skills del catálogo avanzado conservan ocho campos y no habilitan herramientas por sí mismas; 30 son originales y 37 se derivan de la biblioteca.
+Las 67 skills del catálogo de composición conservan ocho campos y no habilitan herramientas por sí mismas; 30 son base y 37 se derivan de la biblioteca.
 Los módulos `agent` y `subagent` no crean contexto, memoria ni permisos.
 
 El generador puede producir un paquete `SKILL.md` a partir de una receta; ese
-paquete es distinto de los módulos `skill` del catálogo avanzado. Generarlo no
+paquete es distinto de los módulos `skill` del catálogo de composición. Generarlo no
 instala la skill ni la registra en un cliente.
 
 ### Artefactos generados

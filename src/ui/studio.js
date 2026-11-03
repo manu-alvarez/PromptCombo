@@ -7,6 +7,7 @@ import {
   RESOURCE_TYPES,
   getResource
 } from '../data/library-resources.js';
+import { TOTAL_ITEMS } from '../data/catalog.js';
 import { buildArtifacts } from '../core/generator.js';
 import {
   artifactFileName,
@@ -22,6 +23,7 @@ import {
 } from '../core/project.js';
 import { loadStudioState, saveStudioState } from '../core/project-store.js';
 import { getStorage } from '../core/persistence.js';
+import { state as composerState } from '../core/state.js';
 import { copyText } from '../core/clipboard.js';
 import { downloadBlob, downloadText } from '../core/download.js';
 import { createZip } from '../core/zip.js';
@@ -136,6 +138,7 @@ const els = {
   savedEmpty: byId('savedEmpty'),
   importProjectBtn: byId('importProjectBtn'),
   importProjectInput: byId('importProjectInput'),
+  advancedMeta: byId('advancedMeta'),
   sessionMeta: document.getElementById('sessionMeta')
 };
 
@@ -196,6 +199,7 @@ function setView(view) {
 
   if (advanced) {
     document.body.dataset.view = 'advanced';
+    els.sessionMeta.textContent = formatCount(composerState.selected.length, 'bloque', 'bloques');
     return;
   }
 
@@ -217,6 +221,8 @@ export function showStudioView(view) {
 }
 
 export function initStudio() {
+  const derived = LIBRARY_RESOURCES.filter((resource) => (resource.type === 'skill' || resource.type === 'role') && !resource.sourceModule).length;
+  els.advancedMeta.textContent = `${TOTAL_ITEMS} bloques composables · ${derived} derivados de la biblioteca · ${LIBRARY_RESOURCES.length} recursos documentados`;
   renderExamples();
   renderFamilies();
   renderFilters();

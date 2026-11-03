@@ -22,6 +22,7 @@ export const els = {
   persistBtn: byId('persistBtn'),
   resetBtn: byId('resetBtn'),
   clearComboBtn: byId('clearComboBtn'),
+  advancedMeta: byId('advancedMeta'),
   studioConflict: byId('studioConflict'),
   studioConflictText: byId('studioConflictText'),
   conflictReloadBtn: byId('conflictReloadBtn'),

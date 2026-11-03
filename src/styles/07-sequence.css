@@ -118,6 +118,20 @@
   line-height: 1.6;
 }
 
+.empty-note {
+  max-width: 460px;
+  margin-top: 9px;
+  color: var(--dim);
+  font-family: var(--mono);
+  font-size: 8px;
+  line-height: 1.55;
+}
+
+.empty-note .text-link {
+  display: inline;
+  font-size: inherit;
+}
+
 .recipe-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));

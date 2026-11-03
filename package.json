@@ -1,6 +1,6 @@
 {
   "name": "promptcombo",
-  "version": "2.4.0",
+  "version": "2.4.1",
   "private": true,
   "type": "module",
   "description": "Generador guiado y offline de prompts, instrucciones y artefactos para proyectos de IA.",

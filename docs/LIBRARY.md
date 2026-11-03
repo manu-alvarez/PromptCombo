@@ -17,10 +17,11 @@ Cada recurso declara:
 
 `not_tested` no significa compatible: significa que no se ha probado.
 
-## Composición actual
+## Inventario actual
 
 | Tipo | Recursos |
 |---|---:|
+| Prompts | 4 |
 | Roles | 22 |
 | Skills | 67 |
 | Comandos | 37 |
@@ -33,7 +34,7 @@ Cada recurso declara:
 | Paquetes | 15 |
 | **Total** | **221** |
 
-Los 56 módulos originales del compositor se mantienen; el avanzado incorpora 52 recursos composables derivados de la biblioteca (22 roles y 67 skills en total). Los 49 recursos derivados del catálogo original tienen estado `stable`; los 172 recursos nuevos quedan en `experimental` hasta revisión editorial explícita. Las recetas nuevas no duplican módulos del compositor: las referencias se resuelven en la capa de biblioteca.
+El catálogo de composición contiene 108 bloques: 56 base y 52 recursos composables derivados de la biblioteca (22 roles y 67 skills en total). Los 49 recursos derivados del catálogo base tienen estado `stable`; los 172 recursos nuevos quedan en `experimental` hasta revisión editorial explícita. Las recetas nuevas no duplican módulos del compositor: las referencias se resuelven en la capa de biblioteca.
 
 ## Descubrimiento
 
@@ -46,6 +47,8 @@ La vista **Biblioteca** permite:
 - iniciar una receta o paquete desde su ficha.
 
 Las recomendaciones de la pantalla Crear siguen siendo reglas de palabras clave, no un modelo generativo.
+
+El catálogo de **Composición** reutiliza 52 recursos composables de la biblioteca (37 skills y 15 roles) y muestra su estado editorial. Los recursos restantes se consultan en Biblioteca y no se presentan como bloques del compositor.
 
 ## Generación
 

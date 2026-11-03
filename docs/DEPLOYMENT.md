@@ -6,6 +6,16 @@ El workflow `.github/workflows/pages.yml` publica el artefacto estático en
 <https://manu-alvarez.github.io/PromptCombo/>. Se ejecuta en cada push a `main`
 o manualmente desde Actions.
 
+Verificación de que Pages sirve el artefacto versionado:
+
+```bash
+shasum -a 256 dist/index.html
+curl -fsS https://manu-alvarez.github.io/PromptCombo/ | shasum -a 256
+```
+
+Los dos hashes deben coincidir. Si no coinciden, revisa el run de Pages y espera
+a que termine el despliegue.
+
 ## 1. Topología
 
 ```text

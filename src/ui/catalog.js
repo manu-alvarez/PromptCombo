@@ -11,11 +11,17 @@ function renderCatalogItem(item) {
   const label = added
     ? `${item.title} ya está en el combo. Ir al bloque.`
     : `Añadir ${item.title} al combo`;
+  const libraryBadge = item.source === 'library'
+    ? `<span class="catalog-status catalog-status-${escapeHTML(item.status || 'experimental')}" title="Recurso de biblioteca · ${escapeHTML(item.status || 'experimental')}">${escapeHTML(item.status || 'experimental')}</span>`
+    : '';
 
   return `<li class="catalog-item ${meta.className}${added ? ' is-added' : ''}" data-item-id="${escapeHTML(item.id)}">
     <span class="catalog-glyph" aria-hidden="true">${escapeHTML(item.short || '')}</span>
     <div class="catalog-copy">
-      <button class="catalog-title" type="button" data-detail="${escapeHTML(item.id)}" title="Ver ficha de ${escapeHTML(item.title)}">${escapeHTML(item.title)}</button>
+      <div class="catalog-title-row">
+        <button class="catalog-title" type="button" data-detail="${escapeHTML(item.id)}" title="Ver ficha de ${escapeHTML(item.title)}">${escapeHTML(item.title)}</button>
+        ${libraryBadge}
+      </div>
       <p class="catalog-desc">${escapeHTML(item.tagline || '')}</p>
     </div>
     <button class="add-btn${added ? ' is-added' : ''}" type="button" data-add="${escapeHTML(item.id)}" aria-label="${escapeHTML(label)}" title="${added ? 'Ya en el combo' : 'Añadir al combo'}">

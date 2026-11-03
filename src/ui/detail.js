@@ -35,16 +35,19 @@ function detailBlock(title, content, full = false) {
 }
 
 function getScopeNote(item) {
+  const libraryNote = item.source === 'library'
+    ? `Recurso de biblioteca (${item.status || 'experimental'}). `
+    : '';
   if (item.type === 'agent' || item.type === 'subagent') {
-    return 'Contrato textual de comportamiento: no crea procesos, no ejecuta herramientas y no concede permisos.';
+    return `${libraryNote}Contrato textual de comportamiento: no crea procesos, no ejecuta herramientas y no concede permisos.`;
   }
   if (item.type === 'skill') {
-    return 'Procedimiento textual reutilizable: no instala dependencias ni habilita herramientas por sí mismo.';
+    return `${libraryNote}Procedimiento textual reutilizable: no instala dependencias ni habilita herramientas por sí mismo.`;
   }
   if (item.type === 'prompt') {
-    return 'Plantilla textual: las variables se sustituyen como texto y no se evalúan ni ejecutan.';
+    return `${libraryNote}Plantilla textual: las variables se sustituyen como texto y no se evalúan ni ejecutan.`;
   }
-  return '';
+  return libraryNote ? `${libraryNote}Contenido revisable; no se ejecuta ni se instala.` : '';
 }
 
 function renderDetail(item) {

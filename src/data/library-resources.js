@@ -45,7 +45,7 @@ function meta(data) {
     compatibility: COMPAT_ALL,
     related: [],
     tags: [],
-    provenance: { origin: 'original', sources: [], license: 'MIT' },
+    provenance: { origin: 'PromptCombo library', sources: [], license: 'MIT' },
     lastReviewed: '2026-11-03',
     verification: verification(),
     ...data
@@ -1268,7 +1268,7 @@ const files = [
   tags: ['file', id],
   summary,
   objective: `Generar ${fileName} con contenido revisable.`,
-  useWhen: 'Cuando el proyecto necesite este archivo y el adaptador sea compatible.',
+  useWhen: 'Cuando el proyecto necesite este archivo y el destino seleccionado sea compatible.',
   avoidWhen: 'Cuando ya exista un archivo equivalente y no se haya decidido sustituirlo.',
   inputs: ['Nombre del proyecto', 'Convenciones'],
   outputs: [fileName],
@@ -1278,7 +1278,7 @@ const files = [
     fileName,
     template: `# ${title}\n\nProyecto: {{projectName}}\n\n[Completar con instrucciones verificables del proyecto]\n`
   },
-  provenance: { origin: 'PromptCombo adapters', sources: [], license: 'MIT' }
+  provenance: { origin: 'PromptCombo files', sources: [], license: 'MIT' }
 }));
 
 const adapters = [

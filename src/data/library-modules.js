@@ -1,4 +1,4 @@
-/* Adapta recursos composables de la biblioteca al formato del catálogo avanzado. */
+/* Adapta recursos composables de la biblioteca al formato del catálogo de composición. */
 import { LIBRARY_RESOURCES } from './library-resources.js';
 import { roles as legacyRoles } from './roles.js';
 import { skills as legacySkills } from './skills/index.js';
@@ -17,6 +17,10 @@ export const librarySkills = newSkillResources.map((resource, index) => {
     short: `L${String(index + 1).padStart(2, '0')}`,
     title: resource.title,
     tagline: resource.summary,
+    libraryId: resource.id,
+    source: 'library',
+    status: resource.status,
+    provenance: resource.provenance?.origin || 'biblioteca',
     purpose: content.purpose || resource.objective,
     when: content.when || resource.useWhen,
     inputs: content.inputs || resource.inputs || [],
@@ -36,6 +40,10 @@ export const libraryRoles = newRoleResources.map((resource, index) => {
     short: `LR${String(index + 1).padStart(2, '0')}`,
     title: resource.title,
     tagline: resource.summary,
+    libraryId: resource.id,
+    source: 'library',
+    status: resource.status,
+    provenance: resource.provenance?.origin || 'biblioteca',
     mission: content.mission || resource.objective,
     responsibilities: content.responsibilities || [],
     deliverables: content.evidence || content.outputs || [resource.objective],

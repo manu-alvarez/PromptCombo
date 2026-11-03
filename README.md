@@ -7,11 +7,11 @@
 
 **Demo pública:** <https://manu-alvarez.github.io/PromptCombo/>
 
-**Versión actual:** 2.4.0 (`/ V2.4`). Consulta las [notas de versión](docs/RELEASE-NOTES.md) y los [límites de compatibilidad](docs/RELEASE-NOTES.md#compatibilidad).
+**Versión actual:** 2.4.1 (`/ V2.4.1`). Consulta las [notas de versión](docs/RELEASE-NOTES.md) y los [límites de compatibilidad](docs/RELEASE-NOTES.md#compatibilidad).
 
 PromptCombo convierte una necesidad en un paquete editable de archivos: prompts, `AGENTS.md`, reglas de Cursor, contexto para Claude Code, instrucciones de Copilot, paquetes de skills, contratos de agentes, comandos, estructuras de proyecto, documentación de diseño, planes de testing y esquemas JSON.
 
-El compositor de bloques original se conserva como **modo avanzado**. La entrada principal es un flujo guiado que selecciona una receta, pide solo los datos necesarios y genera artefactos revisables.
+PromptCombo tiene dos modos de trabajo dentro de la misma aplicación. El modo principal es el **generador guiado**: convierte una necesidad en un paquete editable de archivos, selecciona una receta, pide solo los datos necesarios y genera artefactos revisables. El modo de **composición manual** permite ordenar bloques del catálogo y obtener un prompt maestro. Ambos comparten catálogo, biblioteca y límites.
 
 ![Interfaz de PromptCombo](docs/promptcombo.png)
 
@@ -46,18 +46,19 @@ La interpretación es local y transparente: usa términos y categorías, no un m
 
 La vista **Biblioteca** reúne **221 recursos** con identificador, versión, tipo, estado editorial, procedencia, compatibilidad, relaciones y estado de verificación:
 
+- 4 prompts.
 - 22 roles.
 - 67 skills.
 - 37 comandos.
 - 14 registros documentales.
 - 23 plantillas.
-- 6 plantillas de archivo.
+- 6 archivos.
 - 7 adaptadores.
 - 5 validadores.
 - 21 recetas.
 - 15 paquetes curados.
 
-Los recursos seleccionados generan referencias en `library/` y un `docs/library-index.md` dentro del proyecto. Añadir un recurso no lo instala, no lo ejecuta y no altera la composición del prompt maestro. Los 49 recursos derivados del catálogo original son `stable`; los 172 nuevos quedan `experimental` hasta revisión editorial.
+Los recursos seleccionados generan referencias en `library/` y un `docs/library-index.md` dentro del proyecto. Añadir un recurso no lo instala, no lo ejecuta y no altera la composición del prompt maestro. Los 49 recursos derivados del catálogo base son `stable`; los 172 nuevos quedan `experimental` hasta revisión editorial.
 
 ## Recetas incluidas
 
@@ -116,14 +117,25 @@ Los formatos se generan según lo documentado y se marcan como revisables. La ap
 - Guardar proyectos en `localStorage` para continuar después.
 - Los ZIP usan UTF-8, rutas relativas seguras y un escritor propio sin dependencias.
 
-## Modo avanzado
+## Composición manual
 
-La sección **Avanzado** conserva el compositor original:
+La sección **Composición** es el modo manual del producto. Comparte el catálogo,
+la biblioteca y los límites del generador guiado:
 
-- Catálogo de 108 módulos: 4 prompts, 22 roles, 3 flujos, 1 agente, 3 subagentes, 67 skills, 5 plantillas y 3 scaffoldings (56 originales + 52 recursos composables de biblioteca).
-- Las 67 skills mantienen sus ocho campos; 30 son originales y 37 se derivan de la biblioteca.
-- Reordenación, variables, recetas, copia y descarga del prompt maestro.
+- Catálogo de 108 bloques composables: 4 prompts, 22 roles, 3 flujos, 1 agente, 3 subagentes, 67 skills, 5 plantillas y 3 scaffoldings.
+- 52 de esos bloques se derivan de la biblioteca; los 49 restantes proceden del catálogo base.
+- Los módulos derivados muestran su estado editorial (`stable` o `experimental`) en el catálogo y en la ficha.
+- Reordenación, variables, ejemplos manuales, copia y descarga del prompt maestro.
 - Persistencia independiente de la composición.
+
+El modo manual produce un **prompt maestro textual**. No crea el paquete de un
+proyecto, no genera un ZIP, no instala recursos y no ejecuta nada. Para crear
+instrucciones, `AGENTS.md`, reglas de Cursor, skills o documentación, usa
+**Crear** o **Plantillas**. Para consultar los 221 recursos, usa **Biblioteca**.
+
+La validación estructural cubre los 108 bloques; el prompt compilado incluye
+las reglas de ejecución, autorización y cierre verificable. Que el prompt sea
+coherente no demuestra el comportamiento de un modelo externo.
 
 ## Alcance y límites
 
@@ -150,12 +162,12 @@ Core (src/core)
   ├── generador determinista de artefactos
   ├── modelo y validación de proyecto
   ├── persistencia, ZIP, intención y utilidades
-  └── compilador del modo avanzado
+  └── compilador de composición manual
         │
         ▼
 UI (src/ui)
   ├── studio guiado
-  └── compositor avanzado
+  └── composición manual
         │
         ▼
 Build (esbuild) ──► dist/index.html
@@ -172,13 +184,13 @@ PromptCombo/
 │   ├── index.html              # Shell de desarrollo
 │   ├── main.js                 # Entrada y arranque
 │   ├── core/                   # Generador, proyecto, persistencia, ZIP, compilador
-│   ├── data/                   # Catálogo, skills y recetas del generador
-│   ├── styles/                 # Tokens, compositor y studio
-│   └── ui/                     # Studio guiado y compositor avanzado
+│   ├── data/                   # Catálogo, biblioteca, skills y recetas
+│   ├── styles/                 # Tokens, composición y studio
+│   └── ui/                     # Studio guiado y composición manual
 ├── scripts/                    # Build, servidor, validación y servicio launchd
-├── test/                       # Datos, generador, proyecto, ZIP, persistencia y servidor
-├── docs/                       # Arquitectura, contratos, ADR, despliegue y captura
-├── legacy/                     # Entregable original V1.0 conservado
+├── test/                       # Datos, generador, formatos, ZIP, persistencia y servidor
+├── docs/                       # Arquitectura, contratos, biblioteca, notas de versión y ADR
+├── legacy/                     # Archivo histórico V1.0, fuera del producto actual
 ├── dist/index.html             # Entregable offline generado y versionado
 └── .github/workflows/ci.yml    # Validación, tests y build
 ```

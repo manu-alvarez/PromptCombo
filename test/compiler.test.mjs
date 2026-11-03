@@ -92,3 +92,27 @@ test('todos los módulos compilan sin artefactos de serialización', () => {
     assert.ok(!allOutput.includes(token), `Token sin sustituir: ${token}`);
   }
 });
+
+test('los módulos derivados de la biblioteca conservan sus secciones y estado', async () => {
+  const { libraryRoles, librarySkills } = await import('../src/data/library-modules.js');
+
+  for (const skill of librarySkills) {
+    assert.equal(skill.source, 'library');
+    assert.ok(skill.status, skill.id);
+    const output = compileBlock({ ...skill, type: 'skill' }, 0);
+    for (const section of ['Propósito:', 'Aplicar cuando:', 'Entradas requeridas:', 'Procedimiento:', 'Restricciones:', 'Salida esperada:', 'Criterios de aceptación:']) {
+      assert.ok(output.includes(section), `${skill.id}: falta ${section}`);
+    }
+    assert.ok(!output.includes('undefined'), skill.id);
+  }
+
+  for (const role of libraryRoles) {
+    assert.equal(role.source, 'library');
+    assert.ok(role.status, role.id);
+    const output = compileBlock({ ...role, type: 'role' }, 0);
+    for (const section of ['Misión:', 'Responsabilidades:', 'Entregables:', 'Límites:', 'Criterios de salida:']) {
+      assert.ok(output.includes(section), `${role.id}: falta ${section}`);
+    }
+    assert.ok(!output.includes('undefined'), role.id);
+  }
+});

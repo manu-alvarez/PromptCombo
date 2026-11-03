@@ -16,7 +16,7 @@ Antes de modificar archivos:
 
 PromptCombo es un generador guiado y offline de prompts, instrucciones y
 artefactos para proyectos de IA. Convierte una necesidad en un paquete editable
-de archivos y conserva el compositor de bloques como modo avanzado.
+de archivos y ofrece un modo de composición manual de bloques para obtener un prompt maestro.
 
 - La aplicación es un único `dist/index.html` offline.
 - No llama a modelos, no ejecuta herramientas, no aplica permisos y no conecta
@@ -38,7 +38,7 @@ npm run dev            # desarrollo en 127.0.0.1:8282
 npm run build          # genera dist/index.html
 npm start              # servidor de producción local
 npm run validate       # catálogo y recetas del generador
-npm test               # datos, generador, proyecto, ZIP, persistencia y servidor
+npm test               # datos, generador, formatos, ZIP, persistencia y servidor
 npm run check          # validate + test + build
 npm run deploy:local   # build + servicio launchd
 ```
@@ -56,10 +56,10 @@ src/data -> src/core -> src/ui -> src/main.js -> dist/index.html
 
 - `data`: catálogo canónico, recetas del generador y metadatos. No conoce el DOM.
 - `core`: estado, generador determinista, modelo de proyecto, validación, persistencia, ZIP, biblioteca y compilador.
-- `ui`: studio guiado, compositor, render y eventos. No accede directamente a `localStorage` ni a red.
+- `ui`: studio guiado, composición manual, render y eventos. No accede directamente a `localStorage` ni a red.
 - `scripts`: build, servidor, validación y servicio.
 - `test`: `node:test`; sin dependencias de navegador.
-- `docs`: arquitectura, contratos, despliegue y decisiones.
+- `docs`: arquitectura, contratos, biblioteca, notas de versión, despliegue y decisiones.
 
 No edites `dist/index.html` a mano: se genera con `npm run build` y se versiona
 como artefacto reproducible.
@@ -68,7 +68,7 @@ como artefacto reproducible.
 
 - El catálogo validado contiene 108 módulos: 4 prompts, 22 roles, 3 flujos,
   1 agente, 3 subagentes, 67 skills, 5 plantillas y 3 scaffoldings
-  (56 originales + 52 recursos composables de biblioteca).
+  (56 bloques base + 52 recursos composables de biblioteca).
 - El generador declara 21 recetas y 8 familias en `src/data/studio-recipes.js`.
 - La biblioteca declara 221 recursos en `src/data/library-resources.js`.
 - Cada skill conserva sus ocho campos: propósito, cuándo usarla, entradas,
@@ -82,7 +82,7 @@ como artefacto reproducible.
 
 ## 6. Persistencia
 
-- La composición avanzada se guarda en `localStorage` mediante `core/persistence.js`.
+- La composición manual se guarda en `localStorage` mediante `core/persistence.js`.
 - Los proyectos del generador se guardan en `promptcombo.studio.v1` mediante `core/project-store.js`.
 - Mantén los esquemas versionados, la validación de IDs/tokens/rutas y los límites.
 - No escribas en `localStorage` desde `ui/`.
