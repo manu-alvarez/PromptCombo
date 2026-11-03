@@ -171,7 +171,17 @@ export function closeDetail() {
     els.detailDialog.close();
   } else {
     els.detailDialog.removeAttribute('open');
+    handleDetailClose();
   }
+}
+
+function handleDetailClose() {
+  currentDetailId = null;
+  document.body.classList.remove('dialog-open');
+  if (detailReturnFocus && detailReturnFocus.isConnected) {
+    detailReturnFocus.focus({ preventScroll: true });
+  }
+  detailReturnFocus = null;
 }
 
 export function bindDetailDialog() {
@@ -179,12 +189,5 @@ export function bindDetailDialog() {
     if (event.target === els.detailDialog) closeDetail();
   });
 
-  els.detailDialog.addEventListener('close', () => {
-    currentDetailId = null;
-    document.body.classList.remove('dialog-open');
-    if (detailReturnFocus && detailReturnFocus.isConnected) {
-      detailReturnFocus.focus({ preventScroll: true });
-    }
-    detailReturnFocus = null;
-  });
+  els.detailDialog.addEventListener('close', handleDetailClose);
 }

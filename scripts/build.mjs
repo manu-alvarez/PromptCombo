@@ -60,9 +60,12 @@ async function main() {
   // Evita que una secuencia de cierre de script dentro de una plantilla de datos
   // termine prematuramente el bloque inline del documento final.
   const safeJs = js.replace(/<\/script/gi, '<\\/script');
+
+  // Usa funciones de reemplazo: CSS y JS pueden contener secuencias como $& o
+  // $` que String.replace interpretaría como patrones especiales.
   const html = template
-    .replace(styleTag, `<style>\n${css}\n</style>`)
-    .replace(scriptTag, `<script>\n${safeJs}\n</script>`);
+    .replace(styleTag, () => `<style>\n${css}\n</style>`)
+    .replace(scriptTag, () => `<script>\n${safeJs}\n</script>`);
 
   assert(html.startsWith('<!doctype html>'), 'El HTML de salida no es un documento completo.');
   assert(html.trimEnd().endsWith('</html>'), 'El HTML de salida no termina correctamente.');

@@ -4,6 +4,7 @@ import { els } from '../core/dom.js';
 import { clearSearch, focusCatalogSearch, setSearchQuery } from './catalog.js';
 import {
   addItem,
+  captureSession,
   clearDropIndicators,
   clearVariables,
   handleCopy,
@@ -18,8 +19,34 @@ import {
 import { bindDetailDialog, closeDetail, getCurrentDetailId, openDetail } from './detail.js';
 import { loadRecipe, resetSession } from './session.js';
 import { showToast } from './toasts.js';
+import {
+  flushSessionSave,
+  initPersistence,
+  isPersistenceEnabled,
+  isPersistenceSupported,
+  scheduleSessionSave,
+  setPersistenceEnabled
+} from '../core/persistence.js';
 
 let dragSourceId = null;
+
+function syncPersistenceControl() {
+  const supported = isPersistenceSupported();
+  const enabled = supported && isPersistenceEnabled();
+
+  els.persistBtn.disabled = !supported;
+  els.persistBtn.classList.toggle('is-off', !enabled);
+  els.persistBtn.setAttribute('aria-pressed', String(enabled));
+
+  const description = !supported
+    ? 'El almacenamiento local no está disponible'
+    : enabled
+      ? 'Guardado automático activado'
+      : 'Guardado automático desactivado';
+  const hint = supported ? ' Pulsa para cambiar.' : '';
+  els.persistBtn.title = `${description}.${hint}`;
+  els.persistBtn.setAttribute('aria-label', `${description}.${hint}`);
+}
 
 function isEditableTarget(target) {
   return target instanceof HTMLElement && (
@@ -73,6 +100,54 @@ export function bindEvents() {
   });
 
   els.loadDemoBtn.addEventListener('click', () => loadRecipe('pwa'));
+
+  els.persistBtn.addEventListener('click', () => {
+    const next = !isPersistenceEnabled();
+
+    if (!setPersistenceEnabled(next)) {
+      syncPersistenceControl();
+      showToast('No se pudo activar el guardado local: el almacenamiento no está disponible o está lleno.', {
+        tone: 'error',
+        duration: 5200
+      });
+      return;
+    }
+
+    if (next) {
+      scheduleSessionSave(captureSession());
+      flushSessionSave();
+      showToast('Guardado automático activado', { tone: 'success', duration: 1800 });
+    } else {
+      showToast('Guardado automático desactivado · composición local eliminada', { duration: 3200 });
+    }
+
+    syncPersistenceControl();
+  });
+
+  window.addEventListener('promptcombo:persistence-error', () => {
+    syncPersistenceControl();
+    showToast('No se pudo guardar la sesión local. El almacenamiento está lleno o bloqueado.', {
+      tone: 'error',
+      duration: 5200
+    });
+  });
+
+  window.addEventListener('storage', (event) => {
+    if (event.key !== 'promptcombo.prefs.v1' && event.key !== null) return;
+
+    const wasEnabled = isPersistenceEnabled();
+    initPersistence();
+    syncPersistenceControl();
+
+    if (wasEnabled !== isPersistenceEnabled()) {
+      showToast(
+        isPersistenceEnabled()
+          ? 'Guardado automático activado en otra pestaña'
+          : 'Guardado automático desactivado en otra pestaña',
+        { duration: 3200 }
+      );
+    }
+  });
 
   els.resetBtn.addEventListener('click', () => {
     resetSession({ resetCatalog: true, message: 'Sesión reiniciada' });
@@ -196,4 +271,6 @@ export function bindEvents() {
       focusCatalogSearch();
     }
   });
+
+  syncPersistenceControl();
 }

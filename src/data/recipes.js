@@ -16,7 +16,7 @@ export const RECIPES = {
       '[DESCRIPCIÓN]': 'PromptCombo: una PWA offline de una sola página para seleccionar roles, agentes, flujos, skills y plantillas, ordenarlos y copiar un prompt maestro verificable.',
       '[STACK]': 'HTML5, CSS3 y Vanilla JS en un único index.html. Sin frameworks ni peticiones de red.',
       '[OBJETIVO]': 'Permitir que una persona componga y copie un prompt maestro completo en menos de un minuto, con una interfaz clara y accesible.',
-      '[RESTRICCIONES]': 'Cero dependencias externas, estado en memoria, soporte completo de teclado y diseño responsive. Debe funcionar abriendo el archivo en local.'
+      '[RESTRICCIONES]': 'Cero dependencias externas, persistencia local opcional, soporte completo de teclado y diseño responsive. Debe funcionar abriendo el archivo en local.'
     }
   },
   audit: {
@@ -32,8 +32,8 @@ export const RECIPES = {
       'skill-error-handling'
     ],
     vars: {
-      '[PROYECTO]': 'PromptCombo · index.html y motor de composición',
-      '[STACK]': 'HTML, CSS y JavaScript single-file. Sin build ni dependencias externas.',
+      '[PROYECTO]': 'PromptCombo · dist/index.html y módulos de src/',
+      '[STACK]': 'HTML, CSS y JavaScript vanilla con build determinista a un único archivo. Sin dependencias en el artefacto final.',
       '[SÍNTOMAS]': 'Posible XSS en renderizado dinámico, copia fallida en contextos restringidos y navegación incompleta por teclado.',
       '[ALCANCE]': 'Revisión de seguridad de entradas, accesibilidad de los flujos principales y manejo de errores. Excluye rediseño visual.'
     }

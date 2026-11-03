@@ -6,7 +6,7 @@
  * - Acepta el prefijo /promptcombo usado por Tailscale Serve.
  */
 import { createReadStream } from 'node:fs';
-import { access, stat } from 'node:fs/promises';
+import { access, realpath, stat } from 'node:fs/promises';
 import http from 'node:http';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -49,7 +49,8 @@ function sendJson(response, statusCode, payload) {
     'Cache-Control': 'no-store',
     'X-Content-Type-Options': 'nosniff',
     'X-Frame-Options': 'DENY',
-    'Referrer-Policy': 'no-referrer'
+    'Referrer-Policy': 'no-referrer',
+    'Permissions-Policy': 'camera=(), microphone=(), geolocation=()'
   });
   response.end(body);
 }
@@ -83,6 +84,7 @@ export function createStaticServer({
   if (!root) throw new Error('createStaticServer requiere un directorio raíz.');
 
   const rootAbsolute = path.resolve(root);
+  const rootReal = realpath(rootAbsolute).catch(() => rootAbsolute);
 
   return http.createServer(async (request, response) => {
     const started = performance.now();
@@ -102,9 +104,21 @@ export function createStaticServer({
 
     try {
       const url = new URL(request.url || '/', 'http://localhost');
-      pathname = decodeURIComponent(url.pathname);
-      pathname = pathname.replace(/\/{2,}/g, '/');
-      pathname = stripBasePath(pathname, basePath);
+      const rawPathname = decodeURIComponent(url.pathname).replace(/\/{2,}/g, '/');
+
+      if (basePath && basePath !== '/' && rawPathname === basePath) {
+        pathname = rawPathname;
+        response.writeHead(308, {
+          Location: `${basePath}/${url.search}`,
+          'Content-Length': '0',
+          ...securityHeaders(dev)
+        });
+        response.end();
+        finish(308);
+        return;
+      }
+
+      pathname = stripBasePath(rawPathname, basePath);
 
       if (pathname === '/healthz') {
         sendJson(response, 200, {
@@ -126,9 +140,25 @@ export function createStaticServer({
         return;
       }
 
+      let targetReal;
+      try {
+        targetReal = await realpath(target);
+      } catch {
+        sendText(response, 404, 'Recurso no encontrado.');
+        finish(404);
+        return;
+      }
+
+      const resolvedRoot = await rootReal;
+      if (targetReal !== resolvedRoot && !targetReal.startsWith(`${resolvedRoot}${path.sep}`)) {
+        sendText(response, 403, 'Ruta no permitida.');
+        finish(403);
+        return;
+      }
+
       let fileStat;
       try {
-        fileStat = await stat(target);
+        fileStat = await stat(targetReal);
       } catch {
         sendText(response, 404, 'Recurso no encontrado.');
         finish(404);
@@ -141,7 +171,7 @@ export function createStaticServer({
         return;
       }
 
-      const extension = path.extname(target).toLowerCase();
+      const extension = path.extname(targetReal).toLowerCase();
       const contentType = MIME_TYPES.get(extension) || 'application/octet-stream';
 
       response.writeHead(200, {
@@ -156,7 +186,7 @@ export function createStaticServer({
         return;
       }
 
-      const stream = createReadStream(target);
+      const stream = createReadStream(targetReal);
       stream.on('error', () => {
         if (!response.headersSent) sendText(response, 500, 'Error leyendo el recurso.');
         else response.destroy();

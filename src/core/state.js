@@ -1,4 +1,4 @@
-/* Estado efímero de la sesión. No se persiste fuera de la pestaña. */
+/* Estado de la sesión. La persistencia local es opcional y se gestiona aparte. */
 import { GROUPS } from '../data/catalog.js';
 
 export const state = {

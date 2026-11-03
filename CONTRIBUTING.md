@@ -14,7 +14,8 @@
 - Inglés para identificadores, funciones, variables y mensajes de commit.
 - Conventional Commits: `feat:`, `fix:`, `docs:`, `refactor:`, `test:`, `chore:`.
 - Sin dependencias nuevas sin justificación, impacto y alternativa considerada.
-- Sin `localStorage`, cookies, telemetría ni peticiones de red en tiempo de ejecución.
+- Sin cookies, telemetría ni peticiones de red en tiempo de ejecución.
+- La persistencia local debe pasar por `core/persistence.js`: esquema versionado, validación y tolerancia a cuota/errores. No accedas a `localStorage` desde `ui/`.
 - Mantener la dirección de dependencias `ui → core → data`.
 - Mantener el compilador como función pura y testeable.
 

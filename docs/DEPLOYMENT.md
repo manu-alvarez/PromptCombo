@@ -77,7 +77,9 @@ Rutas:
 - Plist: `~/Library/LaunchAgents/com.promptcombo.server.plist`
 - Logs: `~/Library/Logs/PromptCombo/server.log` y `server.error.log`
 
-El plist fija la ruta absoluta del Node que ejecutó `npm run deploy:local`. Si cambias de versión de Node o de ubicación del proyecto, vuelve a ejecutar `npm run deploy:local`.
+El servicio resuelve una ruta estable de Node (`/usr/local/bin/node` o `/opt/homebrew/bin/node`) y fija un `PATH` explícito en el plist. Si desinstalas Node, cambias de gestor de versiones o mueves el proyecto, vuelve a ejecutar `npm run deploy:local`.
+
+`install` comprueba antes que el puerto `8282` no esté ocupado por un proceso ajeno al servicio. Si lo está, falla con el PID y no deja un falso positivo de salud.
 
 ## 4. Tailscale Serve
 

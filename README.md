@@ -34,7 +34,9 @@ Cada skill documenta ocho campos: propósito, cuándo usarla, entradas, procedim
 - Prevención de duplicados, eliminación con deshacer y reinicio reversible.
 - Copia con Clipboard API y fallback para contextos restringidos.
 - Descarga del prompt maestro como Markdown.
-- Estado exclusivamente en memoria: sin `localStorage`, cookies ni peticiones de red.
+- Persistencia local opcional de la composición con `localStorage`; el botón de guardado permite desactivarla y borrar los datos.
+- Estado en memoria cuando el navegador bloquea el almacenamiento: la aplicación sigue funcionando sin persistir.
+- Sin cookies, telemetría ni peticiones de red.
 - Accesibilidad: HTML semántico, skip link, foco visible, diálogo modal nativo, atajos `/` y `Escape`, `aria-live`, `prefers-reduced-motion` y `forced-colors`.
 
 ## Arquitectura
@@ -166,7 +168,8 @@ Esto publica **solo dentro de la tailnet**, no en Internet. La aplicación no ha
 ## Seguridad y privacidad
 
 - Sin backend, sin telemetría, sin analítica y sin peticiones de red en ejecución.
-- Estado en memoria durante la sesión; no se persiste nada en disco.
+- La composición se guarda opcionalmente en `localStorage` del origen; no sale del navegador.
+- Estado en memoria cuando el almacenamiento local no está disponible; la aplicación no se bloquea.
 - Renderizado con escape explícito de datos y atributos.
 - Servidor estático con protección de path traversal, cabeceras defensivas y métodos limitados a `GET`/`HEAD`.
 - Sin credenciales ni secretos en el repositorio.
@@ -183,7 +186,10 @@ Para reportar una vulnerabilidad, sigue [SECURITY.md](SECURITY.md).
 
 ## Limitaciones
 
-- La sesión no persiste al recargar; es una decisión de diseño.
+- La composición y las variables se guardan en `localStorage` por defecto. El botón de guardado de la barra superior desactiva la persistencia y elimina la copia local.
+- Si el navegador bloquea el almacenamiento (modo privado, políticas, algunos contextos `file://`), la sesión queda solo en memoria y se avisa en la interfaz.
+- La persistencia es por origen y navegador: abrir `dist/index.html` desde otra ruta o navegador no comparte la sesión.
+- Varias pestañas comparten la misma clave local. La preferencia de guardado se sincroniza, pero la composición no: la última pestaña que guarde sobrescribe la anterior.
 - La copia automática depende de la política del navegador. El fallback selecciona el texto para copia manual si ambos mecanismos fallan.
 - No se registra service worker ni manifest: la aplicación es offline como archivo único, pero no se declara instalable como PWA.
 - Tailscale Serve requiere que el dispositivo cliente pertenezca a la misma tailnet.

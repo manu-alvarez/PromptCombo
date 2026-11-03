@@ -6,6 +6,7 @@ import { els } from '../core/dom.js';
 import { escapeHTML, formatCount, icon, padSequence } from '../core/format.js';
 import { getActiveVariables, getComboDescription } from '../core/items.js';
 import { compilePrompt } from '../core/compiler.js';
+import { scheduleSessionSave } from '../core/persistence.js';
 import { syncCatalogAddState } from './catalog.js';
 import { syncDetailAddState } from './detail.js';
 import { showToast } from './toasts.js';
@@ -101,7 +102,7 @@ export function renderVariables() {
 
 function updateVariableWarning() {
   const variables = getActiveVariables(state.selected);
-  const missing = variables.filter((variable) => !String(state.vars[variable.token] || '').trim());
+  const missing = variables.filter((variable) => variable.required !== false && !String(state.vars[variable.token] || '').trim());
   const hasValues = variables.some((variable) => String(state.vars[variable.token] || '').length > 0);
 
   els.resetVarsBtn.disabled = !hasValues;
@@ -156,6 +157,7 @@ export function updateOutput() {
     : '0 líneas';
   els.blockCount.textContent = formatCount(state.selected.length, 'bloque', 'bloques');
   updateVariableWarning();
+  scheduleSessionSave({ selected: [...state.selected], vars: { ...state.vars } });
 }
 
 export function renderAll(newId = null) {

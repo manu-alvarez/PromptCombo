@@ -1,6 +1,8 @@
 import test, { after, before } from 'node:test';
 import assert from 'node:assert/strict';
 import { once } from 'node:events';
+import { mkdtemp, rm, symlink, writeFile } from 'node:fs/promises';
+import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createStaticServer } from '../scripts/serve.mjs';
@@ -50,6 +52,12 @@ test('acepta el prefijo /promptcombo de Tailscale Serve', async () => {
   assert.match(css.headers.get('content-type'), /text\/css/);
 });
 
+test('redirige /promptcombo a /promptcombo/ para conservar rutas relativas', async () => {
+  const response = await fetch(`${baseUrl}/promptcombo`, { redirect: 'manual' });
+  assert.equal(response.status, 308);
+  assert.equal(response.headers.get('location'), '/promptcombo/');
+});
+
 test('expone healthz y cabeceras defensivas', async () => {
   const response = await fetch(`${baseUrl}/promptcombo/healthz`);
   assert.equal(response.status, 200);
@@ -78,4 +86,25 @@ test('no permite escapar del directorio servido', async () => {
   const response = await fetch(`${baseUrl}/%2e%2e/package.json`);
   assert.ok(response.status === 403 || response.status === 404);
   assert.ok(!(await response.text()).includes('"name": "promptcombo"'));
+});
+
+test('bloquea enlaces simbólicos que apuntan fuera de la raíz', async () => {
+  const directory = await mkdtemp(path.join(os.tmpdir(), 'promptcombo-server-'));
+  await writeFile(path.join(directory, 'index.html'), '<!doctype html><title>ok</title>');
+  await symlink('/etc/passwd', path.join(directory, 'leak.txt'));
+
+  const isolated = createStaticServer({ root: directory, log: false });
+  isolated.listen(0, '127.0.0.1');
+  await once(isolated, 'listening');
+  const port = isolated.address().port;
+
+  try {
+    const response = await fetch(`http://127.0.0.1:${port}/leak.txt`);
+    assert.equal(response.status, 403);
+    assert.ok(!(await response.text()).includes('root:'));
+  } finally {
+    isolated.close();
+    await once(isolated, 'close');
+    await rm(directory, { recursive: true, force: true });
+  }
 });

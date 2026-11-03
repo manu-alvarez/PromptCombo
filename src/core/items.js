@@ -1,8 +1,14 @@
 /* Derivaciones sobre el catálogo: variables activas, búsqueda y descripciones. */
-import { GROUPS, ITEM_MAP, TYPE_META, getItem } from '../data/catalog.js';
+import { ALL_ITEMS, GROUPS, ITEM_MAP, TYPE_META, getItem } from '../data/catalog.js';
 import { formatCount, normalizeSearch } from './format.js';
 
 export { getItem };
+
+export const KNOWN_VARIABLE_TOKENS = new Set(
+  ALL_ITEMS
+    .filter((item) => item.type === 'prompt' && Array.isArray(item.variables))
+    .flatMap((item) => item.variables.map((variable) => variable.token))
+);
 
 export function getActiveVariables(selectedIds) {
   const variables = [];

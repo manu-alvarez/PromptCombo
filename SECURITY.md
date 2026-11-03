@@ -13,9 +13,10 @@ PromptCombo es una aplicación estática y local. No tiene backend, autenticaci�
 ## Controles implementados
 
 - Escape HTML de datos y atributos antes de insertarlos en el DOM.
-- Sin `eval`, `Function`, `document.write`, `innerHTML` con entrada externa ni `localStorage`.
+- Sin `eval`, `Function`, `document.write` ni `innerHTML` con entrada externa.
+- Persistencia local opcional y versionada; solo se guardan IDs de módulos y valores de variables, validados y acotados al cargar.
 - Sin peticiones de red en tiempo de ejecución.
-- Servidor con raíz fija, resolución de rutas y bloqueo de path traversal.
+- Servidor con raíz fija, resolución de rutas reales y bloqueo de path traversal y enlaces simbólicos fuera de la raíz.
 - Solo `GET` y `HEAD`; respuestas `405` para el resto.
 - Cabeceras `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: no-referrer` y `Permissions-Policy` restrictiva.
 - Sin secretos ni credenciales en el repositorio.
@@ -24,6 +25,7 @@ PromptCombo es una aplicación estática y local. No tiene backend, autenticaci�
 ## Riesgos residuales
 
 - El catálogo se considera contenido confiable. Si se añade una importación de módulos externos, deberá validarse como dato no confiable.
+- La composición y las variables pueden contener información sensible y se guardan en `localStorage` del navegador si la persistencia está activa. El usuario puede desactivarla y borrar la copia; no se transmiten por red.
 - El portapapeles depende de permisos y contexto seguro del navegador.
 - El servicio local escucha en `127.0.0.1`; no debe cambiarse a `0.0.0.0` sin una revisión de red y firewall.
 - Tailscale Serve hereda la confianza de la tailnet: cualquier dispositivo autorizado puede acceder a la ruta.

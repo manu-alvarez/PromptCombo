@@ -24,6 +24,68 @@ const logDir = path.join(os.homedir(), 'Library', 'Logs', 'PromptCombo');
 const serveScript = path.join(projectRoot, 'scripts', 'serve.mjs');
 const distFile = path.join(projectRoot, 'dist', 'index.html');
 const domain = `gui/${process.getuid()}`;
+const NODE_FALLBACKS = ['/usr/local/bin/node', '/opt/homebrew/bin/node'];
+
+/**
+ * Prioriza rutas estables (symlinks de Homebrew) frente a la ruta versionada
+ * de la Cellar, que desaparece al actualizar o limpiar Node.
+ */
+function resolveNodeBinary() {
+  for (const candidate of NODE_FALLBACKS) {
+    if (existsSync(candidate)) return candidate;
+  }
+
+  for (const directory of (process.env.PATH || '').split(path.delimiter)) {
+    if (!directory) continue;
+    const candidate = path.join(directory, 'node');
+    if (existsSync(candidate)) return candidate;
+  }
+
+  return process.execPath;
+}
+
+const nodeBinary = resolveNodeBinary();
+const nodePath = [
+  path.dirname(nodeBinary),
+  '/usr/local/bin',
+  '/opt/homebrew/bin',
+  '/usr/bin',
+  '/bin',
+  '/usr/sbin',
+  '/sbin'
+].filter((entry, index, entries) => entries.indexOf(entry) === index).join(':');
+
+function listeningPids() {
+  try {
+    const output = execFileSync('lsof', ['-nP', `-iTCP:${PORT}`, '-sTCP:LISTEN', '-t'], {
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'ignore']
+    }).trim();
+    if (!output) return [];
+    return [...new Set(output.split(/\s+/).map(Number).filter(Number.isInteger))];
+  } catch {
+    // lsof devuelve código 1 cuando no hay ningún proceso escuchando.
+    return [];
+  }
+}
+
+function launchdPid() {
+  const output = launchctl(['print', `${domain}/${LABEL}`], { ignoreError: true });
+  const match = output?.match(/\bpid = (\d+)/);
+  return match ? Number(match[1]) : null;
+}
+
+async function waitForPortFree({ timeoutMs = 5000 } = {}) {
+  const deadline = Date.now() + timeoutMs;
+
+  while (Date.now() < deadline) {
+    if (listeningPids().length === 0) return;
+    await new Promise((resolve) => setTimeout(resolve, 150));
+  }
+
+  const pids = listeningPids();
+  throw new Error(`El puerto ${PORT} sigue ocupado${pids.length ? ` por los PID ${pids.join(', ')}` : ''}. Detén esos procesos y vuelve a intentarlo.`);
+}
 
 function escapeXml(value) {
   return String(value)
@@ -55,11 +117,16 @@ function buildPlist() {
   <string>${escapeXml(LABEL)}</string>
   <key>ProgramArguments</key>
   <array>
-    <string>${escapeXml(process.execPath)}</string>
+    <string>${escapeXml(nodeBinary)}</string>
     <string>${escapeXml(serveScript)}</string>
     <string>--port</string>
     <string>${PORT}</string>
   </array>
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>PATH</key>
+    <string>${escapeXml(nodePath)}</string>
+  </dict>
   <key>WorkingDirectory</key>
   <string>${escapeXml(projectRoot)}</string>
   <key>RunAtLoad</key>
@@ -110,17 +177,30 @@ async function install() {
     throw new Error('Falta dist/index.html. Ejecuta primero: npm run build');
   }
 
+  const previousPid = launchdPid();
+  const foreignPids = listeningPids().filter((pid) => pid !== previousPid);
+
+  if (foreignPids.length > 0) {
+    throw new Error(
+      `El puerto ${PORT} está ocupado por un proceso ajeno al servicio (PID ${foreignPids.join(', ')}). ` +
+      'Detén ese proceso y vuelve a ejecutar npm run deploy:local.'
+    );
+  }
+
   await mkdir(path.dirname(plistPath), { recursive: true });
   await mkdir(logDir, { recursive: true });
-  await writeFile(plistPath, buildPlist(), 'utf8');
 
   launchctl(['bootout', `${domain}/${LABEL}`], { ignoreError: true });
+  await waitForPortFree();
+
+  await writeFile(plistPath, buildPlist(), 'utf8');
   launchctl(['bootstrap', domain, plistPath]);
   launchctl(['kickstart', '-k', `${domain}/${LABEL}`]);
 
-  const payload = await waitForHealth();
+  const payload = await waitForHealth({ timeoutMs: 10000 });
   console.log(`Servicio instalado: ${LABEL}`);
   console.log(`plist: ${plistPath}`);
+  console.log(`node: ${nodeBinary}`);
   console.log(`estado: ${payload.status} · ${payload.mode}`);
   console.log(`local: http://127.0.0.1:${PORT}/`);
   console.log(`logs: ${logDir}`);
@@ -149,6 +229,9 @@ async function status() {
   const state = output.match(/\bstate = ([^\n]+)/)?.[1] ?? 'desconocido';
   const pid = output.match(/\bpid = (\d+)/)?.[1] ?? 'sin PID';
   console.log(`launchd: ${state} · ${pid}`);
+
+  const pids = listeningPids();
+  console.log(`puerto: ${PORT} · ${pids.length ? `PID ${pids.join(', ')}` : 'libre'}`);
 
   try {
     const response = await fetch(`http://127.0.0.1:${PORT}/healthz`, { signal: AbortSignal.timeout(1000) });

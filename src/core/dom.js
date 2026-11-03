@@ -19,6 +19,7 @@ export const els = {
   clearSearchInline: byId('clearSearchInline'),
   focusSearchBtn: byId('focusSearchBtn'),
   loadDemoBtn: byId('loadDemoBtn'),
+  persistBtn: byId('persistBtn'),
   resetBtn: byId('resetBtn'),
   clearComboBtn: byId('clearComboBtn'),
   builderCount: byId('builderCount'),

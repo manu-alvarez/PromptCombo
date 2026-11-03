@@ -21,8 +21,8 @@ src/data  ◄──  src/core  ◄──  src/ui  ◄──  src/main.js
 | Capa | Responsabilidad | Prohibido |
 |---|---|---|
 | `data` | Contenido canónico, metadatos de tipo, recetas | DOM, estado, efectos |
-| `core` | Estado, índices, formato, compilador, referencias DOM | Renderizado de UI |
-| `ui` | Render, eventos, diálogos, toasts, sesión | Acceso a red o persistencia |
+| `core` | Estado, índices, formato, compilador, persistencia local, referencias DOM | Renderizado de UI |
+| `ui` | Render, eventos, diálogos, toasts, sesión | Acceso directo a `localStorage` o red |
 | `main` | Composición e inicialización | Lógica de negocio |
 
 ### Datos
@@ -37,10 +37,11 @@ src/data  ◄──  src/core  ◄──  src/ui  ◄──  src/main.js
 | Archivo | Responsabilidad |
 |---|---|
 | `core/dom.js` | Referencias obligatorias al DOM; falla pronto si falta un nodo |
-| `core/state.js` | Estado efímero: selección, variables, búsqueda y acordeones |
+| `core/state.js` | Estado en memoria: selección, variables, búsqueda y acordeones |
 | `core/format.js` | Escape HTML, normalización, iconos, secuencias y conteos |
-| `core/items.js` | Variables activas, índice de búsqueda y descripciones |
+| `core/items.js` | Variables activas, tokens conocidos, índice de búsqueda y descripciones |
 | `core/compiler.js` | Compilación pura de módulos a prompt maestro |
+| `core/persistence.js` | Serialización, validación, cuota, preferencia y guardado diferido en `localStorage` |
 
 ### UI
 
@@ -64,7 +65,7 @@ state = {
 }
 ```
 
-El estado vive en memoria y se pierde al recargar. No hay `localStorage` ni cookies. Cada mutación relevante llama a `renderAll()` o a la función de render específica:
+El estado en memoria es la fuente de verdad. Cada mutación relevante llama a `renderAll()` o a la función de render específica:
 
 ```text
 mutación
@@ -72,8 +73,11 @@ mutación
   ├── syncCatalogAddState()
   ├── renderVariables()
   ├── updateOutput()
+  │     └── scheduleSessionSave()
   └── syncDetailAddState()
 ```
+
+`updateOutput()` programa un guardado diferido (300 ms) con `selected` y `vars`. `core/persistence.js` valida el payload, limita tamaños, usa la clave versionada `promptcombo.session.v1` y tolera cuota llena, JSON corrupto o almacenamiento bloqueado. La preferencia se guarda en `promptcombo.prefs.v1`; al desactivarla se borra la sesión local.
 
 El render se deriva siempre del estado; no se guarda HTML como fuente de verdad.
 
@@ -152,8 +156,9 @@ El artefacto se versiona para permitir descarga directa y auditoría del resulta
 
 - Todo dato de módulo se escapa antes de entrar en HTML.
 - El único HTML generado con `innerHTML` proviene de datos controlados y helpers de escape.
-- No hay red, `eval`, `Function`, `localStorage` ni `document.write`.
-- El servidor no lista directorios y no refleja el path solicitado en la respuesta.
+- No hay red, `eval`, `Function` ni `document.write`.
+- `localStorage` solo se usa para la composición y la preferencia de guardado; el payload se valida y se acota antes de leerlo o escribirlo.
+- El servidor no lista directorios, no refleja el path solicitado y bloquea enlaces simbólicos que escapen de la raíz.
 - Tailscale Serve es la única exposición remota prevista; Funnel no está habilitado.
 
 Riesgos residuales: el contenido del catálogo es confiado por diseño; si en el futuro se importan módulos externos, deberán validarse y sanearse como datos no confiables.
@@ -165,7 +170,7 @@ Riesgos residuales: el contenido del catálogo es confiado por diseño; si en el
 | Single-file build | Offline real y distribución simple | Servir módulos ES en producción |
 | esbuild como única devDependency | Build rápido, determinista y con lockfile | Bundler con más configuración |
 | Datos en módulos ES | Validación en Node y tree-shaking | JSON cargado por `fetch` |
-| Estado en memoria | Privacidad y simplicidad | Persistencia local |
+| Persistencia local opcional | Continuidad entre recargas sin backend | Estado solo en memoria; IndexedDB |
 | `launchd` para macOS | Servicio de usuario persistente sin privilegios | `nohup` o proceso de terminal |
 | Tailscale Serve con path | No desplaza el servicio existente en la raíz | Sustituir la raíz o abrir un puerto público |
 
