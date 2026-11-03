@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
+  armSessionSave,
   clearStoredSession,
   flushSessionSave,
   initPersistence,
@@ -100,9 +101,21 @@ test('no habilita la persistencia si el almacenamiento está bloqueado', () => {
   assert.equal(savePreferences({ persist: true }, brokenStorage), false);
 });
 
+test('no persiste el render inicial antes de armar el guardado', () => {
+  const storage = createStorage();
+  initPersistence(storage);
+
+  scheduleSessionSave({ selected: ['role-analyst'], vars: {} });
+  assert.equal(flushSessionSave(), true);
+  assert.equal(loadStoredSession(storage), null);
+
+  armSessionSave();
+});
+
 test('agrupa escrituras y vuelca la instantánea pendiente', () => {
   const storage = createStorage();
   initPersistence(storage);
+  armSessionSave();
 
   scheduleSessionSave({ selected: ['role-analyst'], vars: { '[X]': '1' } });
   scheduleSessionSave({ selected: ['role-analyst', 'skill-1'], vars: { '[X]': '2' } });

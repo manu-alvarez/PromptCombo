@@ -12,6 +12,7 @@ const SAVE_DELAY_MS = 300;
 
 let enabled = false;
 let activeStorage = null;
+let saveArmed = false;
 let pendingSnapshot = null;
 let flushTimer = null;
 
@@ -187,6 +188,14 @@ export function isPersistenceEnabled() {
   return enabled;
 }
 
+/**
+ * Evita que el primer render guarde un estado vacío antes de restaurar la
+ * sesión. Se activa cuando la inicialización ha terminado.
+ */
+export function armSessionSave() {
+  saveArmed = true;
+}
+
 export function setPersistenceEnabled(value, storage = activeStorage || getStorage()) {
   const next = Boolean(value);
 
@@ -231,7 +240,7 @@ function flushSnapshot() {
 }
 
 export function scheduleSessionSave(snapshot) {
-  if (!enabled || !activeStorage || !snapshot) return;
+  if (!enabled || !activeStorage || !saveArmed || !snapshot) return;
 
   pendingSnapshot = snapshot;
   if (flushTimer) return;

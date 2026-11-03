@@ -3,6 +3,7 @@ import { ITEM_MAP } from './data/catalog.js';
 import { state } from './core/state.js';
 import { KNOWN_VARIABLE_TOKENS } from './core/items.js';
 import {
+  armSessionSave,
   flushSessionSave,
   initPersistence,
   isPersistenceEnabled,
@@ -45,6 +46,7 @@ function init() {
   renderCatalog();
   renderAll();
   bindEvents();
+  armSessionSave();
 
   if (!isPersistenceSupported()) {
     showToast('El almacenamiento local no está disponible. La sesión quedará solo en memoria y no se guardará al recargar.', {
