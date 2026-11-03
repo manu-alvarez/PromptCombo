@@ -138,3 +138,29 @@ test('la biblioteca incluye roles, skills, comandos, registros, paquetes y adapt
   assert.ok(counts.adapter >= 7);
   assert.ok(counts.validator >= 5);
 });
+test('todos los recursos materializables se generan sin errores', () => {
+  const materializable = LIBRARY_RESOURCES.filter((resource) => !['adapter', 'validator', 'recipe', 'package'].includes(resource.type));
+
+  for (const resource of materializable) {
+    const project = fillRequired(createProject({ recipeId: 'prompt-professional', description: 'Demo', id: `res-${resource.id}`, now: 1 }));
+    project.resources = [resource.id];
+    project.artifacts = buildArtifacts(project);
+    const errors = validateProject(project).filter((validation) => validation.severity === 'error');
+    assert.deepEqual(errors, [], `${resource.id}: ${errors.map((error) => error.message).join('; ')}`);
+    assert.ok(project.artifacts.some((artifact) => artifact.path === 'docs/library-index.md'), resource.id);
+  }
+});
+test('la extracción incluye salida válida e inválida y un subconjunto de esquema', () => {
+  const project = fillRequired(createProject({ recipeId: 'structured-output', description: 'Extraer', id: 'structured-library', now: 1 }));
+  project.artifacts = buildArtifacts(project);
+  const schemaArtifact = project.artifacts.find((artifact) => artifact.path.endsWith('.schema.json'));
+  const outputArtifact = project.artifacts.find((artifact) => artifact.path.endsWith('-output.json'));
+  const invalidArtifact = project.artifacts.find((artifact) => artifact.path.endsWith('-invalid.json'));
+  assert.ok(schemaArtifact && outputArtifact && invalidArtifact);
+
+  const schema = JSON.parse(schemaArtifact.content);
+  const output = JSON.parse(outputArtifact.content);
+  const invalid = JSON.parse(invalidArtifact.content);
+  for (const required of schema.required) assert.ok(Object.hasOwn(output, required));
+  assert.notDeepEqual(output, invalid);
+});

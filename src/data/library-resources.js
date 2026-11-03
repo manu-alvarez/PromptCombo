@@ -29,7 +29,7 @@ const COMPAT_ALL = ['markdown', 'agents', 'cursor', 'claude', 'copilot', 'skill'
 function verification(overrides = {}) {
   return {
     structural: 'passed',
-    examples: 'passed',
+    examples: 'not_tested',
     generator: 'passed',
     target: 'not_tested',
     model: 'not_tested',
@@ -1328,7 +1328,7 @@ const validators = [
   outputs: ['Mensajes de validación'],
   compatibility: ['markdown'],
   status: 'stable',
-  verification: verification({ examples: 'passed', generator: 'passed', target: 'not_applicable' }),
+  verification: verification({ examples: 'not_tested', generator: 'not_tested', target: 'not_applicable' }),
   content: { check: id },
   provenance: { origin: 'PromptCombo validators', sources: [], license: 'MIT' }
 }));

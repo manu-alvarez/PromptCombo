@@ -154,18 +154,14 @@ y qué acceso solicita.
 
 ## 8. Salidas estructuradas
 
-El resultado actual es texto Markdown/plain text. No hay un esquema JSON
-ejecutado por la aplicación ni un validador de negocio del resultado de un
-modelo.
+La receta de extracción genera un prompt, un JSON Schema, una entrada, una
+salida válida y una salida inválida. Los archivos JSON deben parsear.
 
-Si se necesita consumo programático, habrá que añadir:
-
-- Un esquema versionado.
-- Validación estructural y de negocio.
-- Comprobación de artefactos y evidencias.
-- Pruebas de casos inválidos y de falsos positivos.
-
-Que una salida cumpla un esquema no demuestra que sea correcta.
+La aplicación **no** ejecuta un validador completo de JSON Schema ni comprueba
+la corrección semántica de la salida. El subconjunto generado se limita a
+`type`, `properties`, `required`, `additionalProperties` y arrays de strings.
+Que una salida cumpla un esquema no demuestra que sea correcta ni que un modelo
+la produzca.
 
 ## 9. Verificación
 

@@ -80,3 +80,17 @@ Añadir un recurso no lo instala, no lo registra en un cliente y no ejecuta su c
 4. Revisar la generación del recurso y del paquete.
 5. Actualizar la fecha de revisión y el estado de verificación.
 6. No marcar como `stable` un recurso sin pruebas de generación y estructura.
+
+## Extracción estructurada
+
+La receta de extracción genera:
+
+- un prompt de extracción;
+- un JSON Schema;
+- una entrada de ejemplo;
+- una salida válida;
+- una salida inválida claramente nombrada.
+
+Subconjunto de esquema soportado actualmente: `type` (`string`, `number`, `integer`, `boolean`, `array`, `object`), `properties`, `required`, `additionalProperties: false` y arrays de strings.
+
+La aplicación valida que los archivos JSON parseen y que el esquema tenga la forma generada. No ejecuta un validador completo de JSON Schema ni comprueba el comportamiento de un modelo.

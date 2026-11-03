@@ -750,11 +750,17 @@ ${fields.map((field) => `- ${field.name}: ${field.type}${field.required ? ' (obl
 - Los tipos deben coincidir.
 - No se evalúa el comportamiento de un modelo con este archivo.`;
 
+  const invalid = { ...sample };
+  const requiredField = fields.find((field) => field.required)?.name;
+  if (requiredField) invalid[requiredField] = null;
+  else invalid.__unexpected = true;
+
   return [
     makeArtifact(project, recipe, 'prompts/extraccion.md', 'markdown', prompt),
     makeArtifact(project, recipe, `schemas/${schemaSlug}.schema.json`, 'json', JSON.stringify(schema, null, 2)),
     makeArtifact(project, recipe, `examples/${schemaSlug}-input.json`, 'json', JSON.stringify(input, null, 2)),
-    makeArtifact(project, recipe, `examples/${schemaSlug}-output.json`, 'json', JSON.stringify(sample, null, 2))
+    makeArtifact(project, recipe, `examples/${schemaSlug}-output.json`, 'json', JSON.stringify(sample, null, 2)),
+    makeArtifact(project, recipe, `examples/${schemaSlug}-invalid.json`, 'json', JSON.stringify(invalid, null, 2))
   ];
 }
 
@@ -1700,7 +1706,13 @@ function buildLibraryArtifacts(project, recipe) {
       files.push(makeResourceArtifact(project, resource, `library/templates/${resource.id}.md`, 'markdown', markdown));
     } else if (resource.type === 'file') {
       const fileName = source.fileName;
-      if (fileName) files.push(makeResourceArtifact(project, resource, fileName, fileName.endsWith('.json') ? 'json' : 'text', source.template || markdown));
+      if (fileName) {
+        let content = source.template || markdown;
+        if (fileName.endsWith('.mdc') && !content.trimStart().startsWith('---')) {
+          content = `---\ndescription: "Reglas de {{projectName}}"\nglobs: "**/*"\nalwaysApply: false\n---\n\n${content}`;
+        }
+        files.push(makeResourceArtifact(project, resource, fileName, fileName.endsWith('.json') ? 'json' : 'text', content));
+      }
     }
   }
 
