@@ -376,7 +376,7 @@ function renderProject() {
 
   const recipe = getRecipe(state.project.recipeId);
   els.projectFamily.textContent = recipe ? familyTitle(recipe.family) : 'PROYECTO';
-  els.projectRecipe.textContent = recipe ? `${recipe.title} · v${recipe.version}` : 'Plantilla no encontrada';
+  els.projectRecipe.textContent = recipe ? `Generado con plantilla · ${recipe.title} · v${recipe.version}` : 'Plantilla no encontrada';
   els.projectTitle.value = state.project.title || '';
   els.projectHeading.textContent = `Proyecto: ${state.project.title || 'sin título'}`;
   els.recipeSelect.value = state.project.recipeId;
